@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <style>
+        :root {
+            --cell: 38px;
+            --gap: 6px;
+            --stringCol: 26px;
+            --bg: #0f172a;
+            --panel: #111827;
+            --line: rgba(255, 255, 255, .10);
+            --text: rgba(255, 255, 255, .9);
+            --muted: rgba(255, 255, 255, .65);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 24px;
+            font-family: system-ui;
+            background: radial-gradient(1200px 600px at 20% 0%, #1f2937 0%, var(--bg) 60%);
+            color: var(--text);
+        }
+
+        .wrap {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .board {
+            background: rgba(17, 24, 39, .7);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 16px;
+            overflow-x: auto;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: var(--cell) var(--stringCol) repeat(20, var(--cell));
+            gap: var(--gap);
+            align-items: center;
+            min-width: calc(var(--cell) + var(--stringCol) + 20 * var(--cell) + 21 * var(--gap));
+        }
+
+        .fret-label {
+            text-align: center;
+            font-size: 12px;
+            color: var(--muted);
+            padding: 6px 0;
+        }
+
+        .string-label {
+            text-align: center;
+            width: var(--stringCol);
+            color: rgba(255, 255, 255, .65);
+            font-weight: 600;
+        }
+
+        .cell {
+            width: var(--cell);
+            height: var(--cell);
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, .03);
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .markers {
+            margin-top: 10px;
+            display: grid;
+            grid-template-columns: var(--cell) var(--stringCol) repeat(20, var(--cell));
+            gap: var(--gap);
+            align-items: center;
+            min-width: calc(var(--cell) + var(--stringCol) + 20 * var(--cell) + 21 * var(--gap));
+            /* DEBUG BORDER */
+            border: 1px dashed red;
+        }
+
+        .marker {
+            height: 16px;
+            display: grid;
+            place-items: center;
+            color: rgba(255, 255, 255, .25);
+            /* DEBUG BG */
+            background: rgba(255, 0, 0, 0.1);
+        }
+
+        .marker .m {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .5);
+            /* INCREASED OPACITY FOR TEST */
+        }
+
+        .marker.double .m {
+            width: 10px;
+            height: 10px;
+            box-shadow: -8px 0 0 rgba(255, 255, 255, .5), 8px 0 0 rgba(255, 255, 255, .5);
+            background: transparent;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <h1>Repro</h1>
+        <div class="board">
+            <div class="scrollArea">
+                <div id="grid" class="grid"></div>
+                <div id="markers" class="markers"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const strings = ["E", "A", "D", "G", "B", "e"];
+        const frets = Array.from({ length: 20 }, (_, i) => i + 1);
+        const grid = document.getElementById("grid");
+
+        function makeDiv(cls, text) { const d = document.createElement("div"); d.className = cls; d.textContent = text; return d; }
+        function dotMarker() { const d = document.createElement("div"); d.className = "m"; return d; }
+        function doubleMarker() { const d = document.createElement("div"); d.className = "m"; return d; }
+
+        function createCell(stringIndex, fret, isOpen) {
+            const cell = document.createElement("div");
+            cell.className = "cell";
+            return cell;
+        }
+
+        function renderBoard() {
+            grid.innerHTML = "";
+            grid.appendChild(makeDiv("fret-label open", "0"));
+            grid.appendChild(makeDiv("fret-label", ""));
+            frets.forEach(f => grid.appendChild(makeDiv("fret-label", f)));
+            [5, 4, 3, 2, 1, 0].forEach((stringIndex) => {
+                grid.appendChild(createCell(stringIndex, 0, true));
+                grid.appendChild(makeDiv("string-label", strings[stringIndex]));
+                frets.forEach(fret => grid.appendChild(createCell(stringIndex, fret, false)));
+            });
+        }
+
+        function renderMarkers() {
+            const markersContainer = document.getElementById("markers");
+            if (!markersContainer) return;
+            markersContainer.innerHTML = "";
+            markersContainer.appendChild(makeDiv("marker", "0"));
+            markersContainer.appendChild(makeDiv("marker", "S"));
+            frets.forEach(f => {
+                const m = document.createElement("div");
+                m.className = "marker";
+                if ([3, 5, 7, 9, 15, 17, 19].includes(f)) {
+                    m.appendChild(dotMarker());
+                } else if (f === 12) {
+                    m.classList.add("double");
+                    m.appendChild(doubleMarker());
+                }
+                markersContainer.appendChild(m);
+            });
+        }
+
+        renderBoard();
+        renderMarkers();
+    </script>
+</body>
+
+</html>

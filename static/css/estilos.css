@@ -188,14 +188,16 @@
        width: 10px;
        height: 10px;
        border-radius: 999px;
-       background: rgba(255, 255, 255, .18);
+       background: #000000 !important;
+       /* Estrategia inversa: Negro para que la extensión lo haga blanco */
+       opacity: 1 !important;
      }
 
      .marker.double .m {
        width: 10px;
        height: 10px;
-       box-shadow: -8px 0 0 rgba(255, 255, 255, .18), 8px 0 0 rgba(255, 255, 255, .18);
-       background: transparent;
+       box-shadow: -8px 0 0 #000000, 8px 0 0 #000000 !important;
+       background: transparent !important;
      }
 
      .toolbar {

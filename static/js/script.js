@@ -236,26 +236,72 @@ function makeDiv(cls, text) { const d = document.createElement("div"); d.classNa
 function dotMarker() { const d = document.createElement("div"); d.className = "m"; return d; }
 function doubleMarker() { const d = document.createElement("div"); d.className = "m"; return d; }
 
-// Metrónomo (Lógica simplificada)
-let audioCtx, metroInterval, metroRunning = false;
+// Metrónomo (Mejorado: Sonido suave + Acento en 1)
+let audioCtx;
+let metroInterval;
+let metroRunning = false;
+let currentBeat = 0; // 0, 1, 2, 3
+
 document.getElementById("metroToggle").addEventListener("click", () => {
-  if (metroRunning) { clearInterval(metroInterval); metroRunning = false; e.target.textContent = "▶️ Metrónomo"; }
-  else { startMetro(); }
+  if (metroRunning) {
+    clearInterval(metroInterval);
+    metroRunning = false;
+    document.getElementById("metroToggle").textContent = "▶️ Metrónomo";
+    currentBeat = 0;
+  } else {
+    startMetro();
+  }
 });
 
 function startMetro() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   const bpm = document.getElementById("bpmInput").value;
-  metroInterval = setInterval(() => { if (document.getElementById("metroSound").checked) playClick(); }, 60000 / bpm);
-  metroRunning = true; document.getElementById("metroToggle").textContent = "⏸ Metrónomo";
+  const ms = 60000 / bpm;
+
+  currentBeat = 0; // Reseteamos al arrancar
+
+  // Tocamos el primero inmediatamente para que no haya delay
+  if (document.getElementById("metroSound").checked) runClickLogic();
+
+  metroInterval = setInterval(() => {
+    if (document.getElementById("metroSound").checked) runClickLogic();
+  }, ms);
+
+  metroRunning = true;
+  document.getElementById("metroToggle").textContent = "⏸ Metrónomo";
 }
 
-function playClick() {
+function runClickLogic() {
+  playClick(currentBeat === 0);
+  currentBeat = (currentBeat + 1) % 4;
+}
+
+function playClick(isAccent) {
+  // Crear oscilador y ganancia
   const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.type = "square"; osc.frequency.value = 1000; gain.gain.value = 0.1;
-  osc.connect(gain); gain.connect(audioCtx.destination);
-  osc.start(); osc.stop(audioCtx.currentTime + 0.03);
+  const gainNode = audioCtx.createGain();
+
+  osc.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+
+  // Configurar sonido "amable" (Sine)
+  osc.type = "sine";
+
+  // Acento: Tono más agudo (880Hz vs 440Hz) y un poco más fuerte
+  if (isAccent) {
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+    gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+  } else {
+    osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+    gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+  }
+
+  // Envelope corto (tipo stick/woodblock suave)
+  // Baja la ganancia exponencialmente rápido
+  gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+
+  osc.start(audioCtx.currentTime);
+  osc.stop(audioCtx.currentTime + 0.1);
 }
 
 // Al final del archivo script.js
