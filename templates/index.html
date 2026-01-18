@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fretboard 0–12 (Escalas)</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
+</head>
+
+<body>
+  <div class="wrap">
+    <h1>Diapasón base (6 cuerdas × trastes 0–20)</h1>
+    <p>Click para marcar/desmarcar manual. Botones de escala para resaltar automáticamente.</p>
+
+    <div class="board">
+      <div class="board-row">
+        <div class="scrollArea">
+          <div id="grid" class="grid" aria-label="Fretboard"></div>
+          <div id="markers" class="markers" aria-label="Marcadores de traste"></div>
+        </div>
+      </div>
+    </div>
+    <div class="toolbar">
+      <!-- NUEVO: selector de tónica -->
+      <label class="hint" for="rootSelect">Tónica:</label>
+      <select id="rootSelect" aria-label="Seleccionar tónica"></select>
+      <label class="hint" for="shapeSelect">Dibujo:</label>
+      <select id="shapeSelect"></select>
+      <!-- NUEVO: botones escala -->
+      <button id="majorBtn" type="button">Escala mayor</button>
+      <button id="minorBtn" type="button">Escala menor</button>
+      <span class="spacer"></span>
+      <!-- METRÓNOMO -->
+      <button id="metroToggle">▶️ Metrónomo</button>
+      <label class="hint">BPM</label>
+      <input id="bpmInput" type="number" min="40" max="240" value="80" style="width:70px">
+      <label class="hint">
+        <input type="checkbox" id="metroSound" checked>
+        Sonido
+      </label>
+      <button id="clearBtn" type="button">Limpiar marcas</button>
+      <span class="hint">Tip: elegí escala + tónica (ej: Mayor + C) y se marcan todas las notas.</span>
+    </div>
+  </div>
+  </div>
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+
+</html>

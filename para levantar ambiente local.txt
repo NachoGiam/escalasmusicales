@@ -1,0 +1,60 @@
+C:\Users\ignac\OneDrive\Escritorio\guitarra escalas\antigravity
+venv/bin/activate
+python app.py
+
+dejar solo los bemoles y que cumplan con las notas correctas
+
+Do mayor
+La menor
+
+Re mayor
+Si menor
+
+Mi mayor
+Do sotenido menor
+
+Fa mayor
+Re menor
+
+Sol mayor 
+Mi menor
+
+La mayor
+Fa sostenido menor
+
+Si mayor
+Sol sostenido menor 
+
+si bemol mayor
+sol menor 
+
+mi bemol mayor
+do menor
+
+la bemol mayor
+fa menor 
+
+re bemol mayor
+si bemol menor
+
+sol bemol mayor 
+mi bemol menor 
+
+1ro jonico
+2do dorico
+3ro frigio
+4to lidio
+5to mixolidio
+6to eolico
+7mo locrio
+
+jonico
+t t st t t t st 
+dorico
+t st t t t st t
+del do mayor es re menor dorico
+del re mayor es mi menor dorico 
+Frigio
+st t t t st t t
+
+
