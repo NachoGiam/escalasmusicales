@@ -119,6 +119,22 @@
        box-shadow: 0 0 0 2px rgba(245, 158, 11, .20) inset;
      }
 
+     /* PRÁCTICA (highlight) */
+     .cell.active-practice {
+       background: rgba(236, 72, 153, 0.4) !important;
+       /* Rosa fuerte */
+       border-color: rgba(236, 72, 153, 1) !important;
+       box-shadow: 0 0 15px rgba(236, 72, 153, 0.5);
+       transform: scale(1.1);
+       z-index: 10;
+     }
+
+     .cell.active-practice .note {
+       color: #fff !important;
+       font-weight: 800;
+       font-size: 14px;
+     }
+
      /* Puntito (para manual) */
      .dot {
        width: 12px;

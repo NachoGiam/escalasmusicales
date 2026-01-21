@@ -19,8 +19,8 @@ const NOTE_TO_PC = {
 const NOTE_NAMES = ["C", "G", "D", "A", "E", "B", "F#", "Gb", "Db", "Ab", "Eb", "Bb", "F"];
 
 const OPEN_STRING_PC = [4, 9, 2, 7, 11, 4];
-const MAJOR = new Set([0, 2, 4, 5, 7, 9, 11]);
-const MINOR_NATURAL = new Set([0, 2, 3, 5, 7, 8, 10]);
+// REMOVE: const MAJOR = new Set([0, 2, 4, 5, 7, 9, 11]);
+// REMOVE: const MINOR_NATURAL = new Set([0, 2, 3, 5, 7, 8, 10]);
 
 // Tonalidades que siempre usan bemoles
 const FLAT_KEYS = new Set([
@@ -40,8 +40,16 @@ const KEY_NAME_MAPS = {
   "F": ["F", "G", "A", "Bb", "C", "D", "E"]
 };
 
+// GLOBAL DATA
+let currentScaleNotes = new Set(); // Stores "stringIndex:fret"
+let currentRootNotes = new Set();  // Stores "stringIndex:fret" for roots
+
+const grid = document.getElementById("grid");
+const rootSelect = document.getElementById("rootSelect");
+const shapeSelect = document.getElementById("shapeSelect");
+
 // =========================
-// 2) Lógica de Nombres (ÚNICA Y CORREGIDA)
+// 2) Lógica de Nombres
 // =========================
 
 function shouldUseFlats(rootName, selectedScale) {
@@ -51,34 +59,98 @@ function shouldUseFlats(rootName, selectedScale) {
 }
 
 function pcToName(pc, rootName, selectedScale) {
-  // 1. Prioridad: Mapas teóricos (E#, Cb, etc.)
   if (KEY_NAME_MAPS[rootName]) {
     const scaleNotes = KEY_NAME_MAPS[rootName];
     for (let name of scaleNotes) {
       if (NOTE_TO_PC[name] === pc) return name;
     }
   }
-  // 2. Fallback: Lógica estándar
   const preferFlats = shouldUseFlats(rootName, selectedScale);
   return preferFlats ? PC_TO_FLAT[pc] : PC_TO_SHARP[pc];
 }
 
 // =========================
-// 3) Render y UI
+// 3) Shapes (Conservado para lógica espacial)
 // =========================
 
-const grid = document.getElementById("grid");
-const markers = document.getElementById("markers");
-const rootSelect = document.getElementById("rootSelect");
-const shapeSelect = document.getElementById("shapeSelect");
-
 const SHAPES = [
-  { id: "all", name: "Todos" },
-  { id: "p1", name: "Dibujo 1", from: 0, to: 4 },
-  { id: "p2", name: "Dibujo 2", from: 3, to: 7 },
-  { id: "p3", name: "Dibujo 3", from: 5, to: 9 },
-  { id: "p4", name: "Dibujo 4", from: 7, to: 11 },
-  { id: "p5", name: "Dibujo 5", from: 8, to: 12 },
+  {
+    id: "all",
+    name: "Todos",
+    type: "range",
+    from: 0,
+    to: 20
+  },
+  {
+    id: "s1",
+    name: "Esquema 1 (Tónica 5ta)",
+    type: "pattern",
+    rootString: 1, // A string
+    offsets: [
+      { s: 0, f: 0 }, { s: 0, f: 2 }, { s: 0, f: 4 }, // 5, 6, 7
+      { s: 1, f: 0 }, { s: 1, f: 2 }, { s: 1, f: 4 }, // 1, 2, 3
+      { s: 2, f: 0 }, { s: 2, f: 2 }, { s: 2, f: 4 }, // 4, 5, 6
+      { s: 3, f: 1 }, { s: 3, f: 2 }, { s: 3, f: 4 }, // 7, 1, 2
+      { s: 4, f: 2 }, { s: 4, f: 3 }, { s: 4, f: 5 }, // 3, 4, 5
+      { s: 5, f: 0 }, { s: 5, f: 2 }, { s: 5, f: 4 }  // 5, 6, 7
+    ]
+  },
+  {
+    id: "s2",
+    name: "Esquema 2 (Tónica 6ta)",
+    type: "pattern",
+    rootString: 0, // E string
+    offsets: [
+      { s: 0, f: 0 }, { s: 0, f: 2 }, { s: 0, f: 4 },
+      { s: 1, f: 0 }, { s: 1, f: 2 }, { s: 1, f: 4 },
+      { s: 2, f: 1 }, { s: 2, f: 2 }, { s: 2, f: 4 },
+      { s: 3, f: 1 }, { s: 3, f: 2 }, { s: 3, f: 4 },
+      { s: 4, f: 2 }, { s: 4, f: 4 }, { s: 4, f: 5 },
+      { s: 5, f: 0 }, { s: 5, f: 2 }, { s: 5, f: 4 }
+    ]
+  },
+  {
+    id: "s3",
+    name: "Esquema 3 (Forma de Do / C-Shape)",
+    type: "pattern",
+    rootString: 1,
+    offsets: [
+      { s: 1, f: 0 }, { s: 1, f: 2 }, { s: 1, f: 4 },
+      { s: 2, f: 0 }, { s: 2, f: 2 }, { s: 2, f: 4 },
+      { s: 3, f: 1 }, { s: 3, f: 2 }, { s: 3, f: 4 },
+      { s: 4, f: 2 }, { s: 4, f: 3 }, { s: 4, f: 5 },
+      { s: 5, f: 0 }, { s: 5, f: 2 }, { s: 5, f: 4 },
+      { s: 0, f: 0 }, { s: 0, f: 2 }, { s: 0, f: 4 }
+    ]
+  },
+  {
+    id: "s4",
+    name: "Esquema 4 (Forma de La / A-Shape)",
+    type: "pattern",
+    rootString: 1,
+    offsets: [
+      { s: 1, f: 0 }, { s: 1, f: 2 }, { s: 1, f: 4 },
+      { s: 2, f: 0 }, { s: 2, f: 2 }, { s: 2, f: 4 },
+      { s: 3, f: -1 }, { s: 3, f: 1 }, { s: 3, f: 2 },
+      { s: 4, f: 0 }, { s: 4, f: 2 }, { s: 4, f: 3 },
+      { s: 5, f: 0 }, { s: 5, f: 2 }, { s: 5, f: 4 },
+      { s: 0, f: 0 }, { s: 0, f: 2 }, { s: 0, f: 4 }
+    ]
+  },
+  {
+    id: "s5",
+    name: "Esquema 5 (Forma de Sol / G-Shape)",
+    type: "pattern",
+    rootString: 0,
+    offsets: [
+      { s: 0, f: 0 }, { s: 0, f: 2 }, { s: 0, f: 4 },
+      { s: 1, f: 0 }, { s: 1, f: 2 }, { s: 1, f: 4 },
+      { s: 2, f: 0 }, { s: 2, f: 2 }, { s: 2, f: 4 },
+      { s: 3, f: 1 }, { s: 3, f: 2 }, { s: 3, f: 4 },
+      { s: 4, f: 2 }, { s: 4, f: 4 }, { s: 4, f: 5 },
+      { s: 5, f: 0 }, { s: 5, f: 2 }, { s: 5, f: 4 }
+    ]
+  }
 ];
 
 let selectedScale = null;
@@ -97,7 +169,41 @@ SHAPES.forEach(s => {
   shapeSelect.appendChild(opt);
 });
 
-// Dibujar Grilla
+// =========================
+// 4) Backend Fetching
+// =========================
+
+async function fetchScaleData(rootName, scaleType) {
+  // Convert # to s for URL safety if needed, but modern browsers handle encoded # fine. 
+  // Let's replace just in case, or match backend logic.
+  // Backend replaces 's' with '#', so we send 's' instead of '#'.
+  const safeRoot = rootName.replace('#', 's');
+  try {
+    const res = await fetch(`/api/escala/${safeRoot}/${scaleType}`);
+    if (!res.ok) throw new Error("API Error");
+    const data = await res.json();
+
+    // Store in Sets for O(1) lookup
+    currentScaleNotes.clear();
+    currentRootNotes.clear();
+
+    data.positions.forEach(pos => {
+      const key = `${pos.string}:${pos.fret}`;
+      currentScaleNotes.add(key);
+      if (pos.is_root) currentRootNotes.add(key);
+    });
+
+  } catch (err) {
+    console.error("Error fetching scale:", err);
+    currentScaleNotes.clear();
+    currentRootNotes.clear();
+  }
+}
+
+// =========================
+// 5) Render y UI
+// =========================
+
 function renderBoard() {
   grid.innerHTML = "";
   grid.appendChild(makeDiv("fret-label open", "0"));
@@ -107,15 +213,9 @@ function renderBoard() {
   const STRING_ORDER = [5, 4, 3, 2, 1, 0];
   STRING_ORDER.forEach((stringIndex) => {
     const s = strings[stringIndex];
-
-    // Traste 0
     const openCell = createCell(stringIndex, 0, true);
     grid.appendChild(openCell);
-
-    // Etiqueta cuerda
     grid.appendChild(makeDiv("string-label", s));
-
-    // Trastes 1..20
     frets.forEach(fret => {
       grid.appendChild(createCell(stringIndex, fret, false));
     });
@@ -128,7 +228,6 @@ function createCell(stringIndex, fret, isOpen) {
   cell.dataset.stringIndex = stringIndex;
   cell.dataset.fret = fret;
 
-  // ESTO ES LO QUE HACE QUE APAREZCA EL PUNTO AL HACER CLICK
   const dot = document.createElement("div");
   dot.className = "dot";
   cell.appendChild(dot);
@@ -144,19 +243,12 @@ function createCell(stringIndex, fret, isOpen) {
 function renderMarkers() {
   const markersContainer = document.getElementById("markers");
   if (!markersContainer) return;
-
   markersContainer.innerHTML = "";
-
-  // 1. Espacio para la columna del traste 0
   markersContainer.appendChild(makeDiv("marker", ""));
-  // 2. Espacio para la columna de la letra (E, A, D...)
   markersContainer.appendChild(makeDiv("marker", ""));
-
-  // 3. Generar los puntos para los trastes 1 al 20
   frets.forEach(f => {
     const m = document.createElement("div");
     m.className = "marker";
-
     if ([3, 5, 7, 9, 15, 17, 19].includes(f)) {
       m.appendChild(dotMarker());
     } else if (f === 12) {
@@ -179,41 +271,91 @@ function refreshNoteLabels() {
   });
 }
 
+async function updateAndApply() {
+  if (selectedScale) {
+    await fetchScaleData(rootSelect.value, selectedScale);
+  } else {
+    currentScaleNotes.clear();
+    currentRootNotes.clear();
+  }
+  applyScaleHighlight();
+}
+
 function applyScaleHighlight() {
   document.querySelectorAll(".cell.scale, .cell.root").forEach(el => el.classList.remove("scale", "root"));
   if (!selectedScale) return;
 
-  const rootName = rootSelect.value;
-  const rootPc = NOTE_TO_PC[rootName];
-  const intervals = (selectedScale === "major") ? MAJOR : MINOR_NATURAL;
   const shape = SHAPES.find(s => s.id === selectedShapeId) || SHAPES[0];
 
-  document.querySelectorAll(".cell").forEach(cell => {
-    const fret = Number(cell.dataset.fret);
-    const sIdx = Number(cell.dataset.stringIndex);
-    if (fret !== 0 && shape.id !== "all" && (fret < shape.from || fret > shape.to)) return;
+  // Caso 1: Mostrar todo (pero validado contra backend)
+  if (shape.type === "range") {
+    // Iterate over all valid notes from backend
+    currentScaleNotes.forEach(key => {
+      const [sStr, fStr] = key.split(":");
+      const sIdx = Number(sStr);
+      const fret = Number(fStr);
 
-    const notePc = (OPEN_STRING_PC[sIdx] + fret) % 12;
-    const rel = (notePc - rootPc + 12) % 12;
+      // Check range if apply
+      if (fret !== 0 && (fret < shape.from || fret > shape.to)) return;
 
-    if (intervals.has(rel)) cell.classList.add("scale");
-    if (notePc === rootPc) cell.classList.add("root");
-  });
+      const cell = document.querySelector(`.cell[data-string-index="${sIdx}"][data-fret="${fret}"]`);
+      if (cell) {
+        cell.classList.add("scale");
+        if (currentRootNotes.has(key)) cell.classList.add("root");
+      }
+    });
+    return;
+  }
+
+  // Caso 2: Esquemas Fijos
+  if (shape.type === "pattern") {
+    // 1. Calcular Anchor Point
+    const anchorStringIndex = shape.rootString;
+    const rootName = rootSelect.value;
+    const rootPc = NOTE_TO_PC[rootName];
+    const openPc = OPEN_STRING_PC[anchorStringIndex];
+
+    // Find candidate fret for root on anchor string
+    let candidateFrets = [];
+    for (let f = 0; f <= 20; f++) {
+      if ((openPc + f) % 12 === rootPc) {
+        candidateFrets.push(f);
+      }
+    }
+    const rootFret = candidateFrets[0];
+    if (rootFret === undefined) return;
+
+    // 2. Iterate shape offsets
+    shape.offsets.forEach(off => {
+      const targetString = off.s;
+      const targetFret = rootFret + off.f;
+      const key = `${targetString}:${targetFret}`;
+
+      // VALIDATION: Only light up if backend says it's part of the scale
+      if (currentScaleNotes.has(key)) {
+        const cell = document.querySelector(`.cell[data-string-index="${targetString}"][data-fret="${targetFret}"]`);
+        if (cell) {
+          cell.classList.add("scale");
+          if (currentRootNotes.has(key)) cell.classList.add("root");
+        }
+      }
+    });
+  }
 }
 
 // =========================
-// 4) Eventos y Metrónomo
+// 6) Eventos
 // =========================
 
-rootSelect.addEventListener("change", () => { refreshNoteLabels(); applyScaleHighlight(); });
+rootSelect.addEventListener("change", () => { refreshNoteLabels(); updateAndApply(); });
 shapeSelect.addEventListener("change", () => { selectedShapeId = shapeSelect.value; refreshNoteLabels(); applyScaleHighlight(); });
 
-document.getElementById("majorBtn").addEventListener("click", (e) => {
+document.getElementById("majorBtn").addEventListener("click", () => {
   selectedScale = (selectedScale === "major") ? null : "major";
   updateUI();
 });
 
-document.getElementById("minorBtn").addEventListener("click", (e) => {
+document.getElementById("minorBtn").addEventListener("click", () => {
   selectedScale = (selectedScale === "minor") ? null : "minor";
   updateUI();
 });
@@ -221,14 +363,20 @@ document.getElementById("minorBtn").addEventListener("click", (e) => {
 document.getElementById("clearBtn").addEventListener("click", () => {
   document.querySelectorAll(".cell.on, .cell.scale, .cell.root").forEach(el => el.classList.remove("on", "scale", "root"));
   selectedScale = null;
-  updateUI();
+  currentScaleNotes.clear();
+  currentRootNotes.clear();
+  updateUIButtons();
 });
 
 function updateUI() {
+  updateUIButtons();
+  refreshNoteLabels();
+  updateAndApply();
+}
+
+function updateUIButtons() {
   document.getElementById("majorBtn").classList.toggle("active", selectedScale === "major");
   document.getElementById("minorBtn").classList.toggle("active", selectedScale === "minor");
-  refreshNoteLabels();
-  applyScaleHighlight();
 }
 
 // Helpers
@@ -236,11 +384,14 @@ function makeDiv(cls, text) { const d = document.createElement("div"); d.classNa
 function dotMarker() { const d = document.createElement("div"); d.className = "m"; return d; }
 function doubleMarker() { const d = document.createElement("div"); d.className = "m"; return d; }
 
-// Metrónomo (Mejorado: Sonido suave + Acento en 1)
+// =========================
+// 7) Metrónomo & Práctica (Mantenido igual)
+// =========================
+
 let audioCtx;
 let metroInterval;
 let metroRunning = false;
-let currentBeat = 0; // 0, 1, 2, 3
+let currentBeat = 0;
 
 document.getElementById("metroToggle").addEventListener("click", () => {
   if (metroRunning) {
@@ -257,16 +408,11 @@ function startMetro() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   const bpm = document.getElementById("bpmInput").value;
   const ms = 60000 / bpm;
-
-  currentBeat = 0; // Reseteamos al arrancar
-
-  // Tocamos el primero inmediatamente para que no haya delay
+  currentBeat = 0;
   if (document.getElementById("metroSound").checked) runClickLogic();
-
   metroInterval = setInterval(() => {
     if (document.getElementById("metroSound").checked) runClickLogic();
   }, ms);
-
   metroRunning = true;
   document.getElementById("metroToggle").textContent = "⏸ Metrónomo";
 }
@@ -277,17 +423,11 @@ function runClickLogic() {
 }
 
 function playClick(isAccent) {
-  // Crear oscilador y ganancia
   const osc = audioCtx.createOscillator();
   const gainNode = audioCtx.createGain();
-
   osc.connect(gainNode);
   gainNode.connect(audioCtx.destination);
-
-  // Configurar sonido "amable" (Sine)
   osc.type = "sine";
-
-  // Acento: Tono más agudo (880Hz vs 440Hz) y un poco más fuerte
   if (isAccent) {
     osc.frequency.setValueAtTime(880, audioCtx.currentTime);
     gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
@@ -295,16 +435,84 @@ function playClick(isAccent) {
     osc.frequency.setValueAtTime(440, audioCtx.currentTime);
     gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
   }
-
-  // Envelope corto (tipo stick/woodblock suave)
-  // Baja la ganancia exponencialmente rápido
   gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-
   osc.start(audioCtx.currentTime);
   osc.stop(audioCtx.currentTime + 0.1);
 }
 
-// Al final del archivo script.js
-renderBoard();    // Dibuja las cuerdas y trastes
-renderMarkers();  // Dibuja los puntos guía (3, 5, 7...)
-refreshNoteLabels(); // Pone los nombres de las notas
+// Práctica
+let practiceInterval;
+let practiceRunning = false;
+let practiceSequence = [];
+let practiceIndex = 0;
+
+document.getElementById("practiceBtn").addEventListener("click", () => {
+  if (practiceRunning) {
+    stopPractice();
+  } else {
+    startPractice();
+  }
+});
+
+function stopPractice() {
+  clearInterval(practiceInterval);
+  practiceRunning = false;
+  document.getElementById("practiceBtn").textContent = "🎓 Practicar Escala";
+  document.querySelectorAll(".cell.active-practice").forEach(el => el.classList.remove("active-practice"));
+}
+
+function startPractice() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const cells = Array.from(document.querySelectorAll(".cell.scale, .cell.root"));
+  if (cells.length === 0) {
+    alert("Primero selecciona una escala y tónica.");
+    return;
+  }
+  const STRING_OFFSETS = { 0: 0, 1: 5, 2: 10, 3: 15, 4: 19, 5: 24 };
+  practiceSequence = cells.map(cell => {
+    const sIdx = Number(cell.dataset.stringIndex);
+    const fret = Number(cell.dataset.fret);
+    const pitchVal = STRING_OFFSETS[sIdx] + fret;
+    return { cell, sIdx, fret, pitchVal };
+  });
+  practiceSequence.sort((a, b) => a.pitchVal - b.pitchVal);
+  if (practiceSequence.length === 0) return;
+  practiceIndex = 0;
+  const bpm = document.getElementById("bpmInput").value;
+  const ms = 60000 / bpm;
+  practiceRunning = true;
+  document.getElementById("practiceBtn").textContent = "⏹ Detener Práctica";
+  runPracticeTick();
+  practiceInterval = setInterval(runPracticeTick, ms);
+}
+
+function runPracticeTick() {
+  document.querySelectorAll(".cell.active-practice").forEach(el => el.classList.remove("active-practice"));
+  const item = practiceSequence[practiceIndex];
+  item.cell.classList.add("active-practice");
+  if (document.getElementById("metroSound").checked) {
+    playNote(item.sIdx, item.fret);
+  }
+  practiceIndex = (practiceIndex + 1) % practiceSequence.length;
+}
+
+function playNote(stringIndex, fret) {
+  const STRING_OFFSETS = { 5: 0, 4: 5, 3: 10, 2: 15, 1: 19, 0: 24 };
+  const semitones = STRING_OFFSETS[stringIndex] + fret;
+  const freq = 82.41 * Math.pow(2, semitones / 12);
+  const osc = audioCtx.createOscillator();
+  const gainNode = audioCtx.createGain();
+  osc.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+  osc.type = "triangle";
+  osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+  gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+  gainNode.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + 0.05);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+  osc.start(audioCtx.currentTime);
+  osc.stop(audioCtx.currentTime + 0.6);
+}
+
+renderBoard();
+renderMarkers();
+refreshNoteLabels();

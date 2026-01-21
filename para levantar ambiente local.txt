@@ -2,6 +2,9 @@ C:\Users\ignac\OneDrive\Escritorio\guitarra escalas\antigravity
 venv/bin/activate
 python app.py
 
+git:
+git commit -m "Estructura inicial del proyecto de escalas"
+
 dejar solo los bemoles y que cumplan con las notas correctas
 
 Do mayor
