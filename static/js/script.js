@@ -43,6 +43,8 @@ const KEY_NAME_MAPS = {
 // GLOBAL DATA
 let currentScaleNotes = new Set(); // Stores "stringIndex:fret"
 let currentRootNotes = new Set();  // Stores "stringIndex:fret" for roots
+// NUEVO: Mapa para guardar el nombre de la nota que dice el backend
+let noteNamesMap = new Map(); // Key: "string:fret" -> Value: "C#", "Gb", etc.
 
 const grid = document.getElementById("grid");
 const rootSelect = document.getElementById("rootSelect");
@@ -59,6 +61,8 @@ function shouldUseFlats(rootName, selectedScale) {
 }
 
 function pcToName(pc, rootName, selectedScale) {
+  // ESTA FUNCION YA NO SE DEBERÍA USAR SI TENEMOS DATOS DEL BACKEND
+  // PERO LA DEJAMOS COMO FALLBACK PARA CUANDO NO HAY ESCALA SELECCIONADA
   if (KEY_NAME_MAPS[rootName]) {
     const scaleNotes = KEY_NAME_MAPS[rootName];
     for (let name of scaleNotes) {
@@ -186,17 +190,20 @@ async function fetchScaleData(rootName, scaleType) {
     // Store in Sets for O(1) lookup
     currentScaleNotes.clear();
     currentRootNotes.clear();
+    noteNamesMap.clear();
 
     data.positions.forEach(pos => {
       const key = `${pos.string}:${pos.fret}`;
       currentScaleNotes.add(key);
       if (pos.is_root) currentRootNotes.add(key);
+      if (pos.note_name) noteNamesMap.set(key, pos.note_name);
     });
 
   } catch (err) {
     console.error("Error fetching scale:", err);
     currentScaleNotes.clear();
     currentRootNotes.clear();
+    noteNamesMap.clear();
   }
 }
 
@@ -302,6 +309,12 @@ function applyScaleHighlight() {
       if (cell) {
         cell.classList.add("scale");
         if (currentRootNotes.has(key)) cell.classList.add("root");
+
+        // NUEVO: Sobreescribir el nombre de la nota con el del backend
+        if (noteNamesMap.has(key)) {
+          const noteEl = cell.querySelector(".note");
+          if (noteEl) noteEl.textContent = noteNamesMap.get(key);
+        }
       }
     });
     return;
@@ -337,6 +350,12 @@ function applyScaleHighlight() {
         if (cell) {
           cell.classList.add("scale");
           if (currentRootNotes.has(key)) cell.classList.add("root");
+
+          // NUEVO: Sobreescribir el nombre de la nota con el del backend
+          if (noteNamesMap.has(key)) {
+            const noteEl = cell.querySelector(".note");
+            if (noteEl) noteEl.textContent = noteNamesMap.get(key);
+          }
         }
       }
     });
@@ -365,13 +384,15 @@ document.getElementById("clearBtn").addEventListener("click", () => {
   selectedScale = null;
   currentScaleNotes.clear();
   currentRootNotes.clear();
+  noteNamesMap.clear();
+  refreshNoteLabels(); // Reset to default names when cleared
   updateUIButtons();
 });
 
 function updateUI() {
   updateUIButtons();
-  refreshNoteLabels();
-  updateAndApply();
+  refreshNoteLabels(); // Set defaults first
+  updateAndApply();    // Then fetch and overwrite logic (async)
 }
 
 function updateUIButtons() {
