@@ -16,7 +16,7 @@ const NOTE_TO_PC = {
 };
 
 // 12 Tonalidades sugeridas por el profesor
-const NOTE_NAMES = ["C", "G", "D", "A", "E", "B", "F#", "Gb", "Db", "Ab", "Eb", "Bb", "F"];
+const NOTE_NAMES = ["C", "G", "D", "A", "E", "B", "Gb", "Db", "Ab", "Eb", "Bb", "F"];
 
 const OPEN_STRING_PC = [4, 9, 2, 7, 11, 4];
 // REMOVE: const MAJOR = new Set([0, 2, 4, 5, 7, 9, 11]);
@@ -87,73 +87,83 @@ const SHAPES = [
   },
   {
     id: "s1",
-    name: "Esquema 1 (Tónica 5ta)",
+    name: "Dibujo 1",
     type: "pattern",
-    rootString: 1, // A string
-    offsets: [
-      { s: 0, f: 0 }, { s: 0, f: 2 }, { s: 0, f: 4 }, // 5, 6, 7
-      { s: 1, f: 0 }, { s: 1, f: 2 }, { s: 1, f: 4 }, // 1, 2, 3
-      { s: 2, f: 0 }, { s: 2, f: 2 }, { s: 2, f: 4 }, // 4, 5, 6
-      { s: 3, f: 1 }, { s: 3, f: 2 }, { s: 3, f: 4 }, // 7, 1, 2
-      { s: 4, f: 2 }, { s: 4, f: 3 }, { s: 4, f: 5 }, // 3, 4, 5
-      { s: 5, f: 0 }, { s: 5, f: 2 }, { s: 5, f: 4 }  // 5, 6, 7
-    ]
+    rootString: 0, // C6
+    offsets: {
+      major: [
+        { s: 0, f: 0 }, { s: 0, f: 2 }, { s: 0, f: 4 }, // C6
+        { s: 1, f: 0 }, { s: 1, f: 2 }, { s: 1, f: 4 }, // C5
+        { s: 2, f: 1 }, { s: 2, f: 2 }, { s: 2, f: 4 }, // C4
+        { s: 3, f: 1 }, { s: 3, f: 2 }, { s: 3, f: 4 }, // C3
+        { s: 4, f: 0 }, { s: 4, f: 2 }, { s: 4, f: 4 }, // C2
+        { s: 5, f: 0 }, { s: 5, f: 2 }, { s: 5, f: 4 }  // C1
+      ]
+    }
   },
   {
     id: "s2",
-    name: "Esquema 2 (Tónica 6ta)",
+    name: "Dibujo 2",
     type: "pattern",
-    rootString: 0, // E string
-    offsets: [
-      { s: 0, f: 0 }, { s: 0, f: 2 }, { s: 0, f: 4 },
-      { s: 1, f: 0 }, { s: 1, f: 2 }, { s: 1, f: 4 },
-      { s: 2, f: 1 }, { s: 2, f: 2 }, { s: 2, f: 4 },
-      { s: 3, f: 1 }, { s: 3, f: 2 }, { s: 3, f: 4 },
-      { s: 4, f: 2 }, { s: 4, f: 4 }, { s: 4, f: 5 },
-      { s: 5, f: 0 }, { s: 5, f: 2 }, { s: 5, f: 4 }
-    ]
+    rootString: 2, // C4
+    offsets: {
+      major: [
+        { s: 2, f: 0 }, { s: 2, f: 2 }, { s: 2, f: 4 }, // C4
+        { s: 3, f: 0 }, { s: 3, f: 2 }, { s: 3, f: 4 }, // C3
+        { s: 4, f: 1 }, { s: 4, f: 2 }, { s: 4, f: 4 }, // C2
+        { s: 5, f: 0 }, { s: 5, f: 2 }, { s: 5, f: 4 }, // C1
+        { s: 0, f: 0 }, { s: 0, f: 2 }, { s: 0, f: 4 }, // C6
+        { s: 1, f: 0 }, { s: 1, f: 2 }, { s: 1, f: 4 }  // C5
+      ]
+    }
   },
   {
     id: "s3",
-    name: "Esquema 3 (Forma de Do / C-Shape)",
+    name: "Dibujo 3",
     type: "pattern",
-    rootString: 1,
-    offsets: [
-      { s: 1, f: 0 }, { s: 1, f: 2 }, { s: 1, f: 4 },
-      { s: 2, f: 0 }, { s: 2, f: 2 }, { s: 2, f: 4 },
-      { s: 3, f: 1 }, { s: 3, f: 2 }, { s: 3, f: 4 },
-      { s: 4, f: 2 }, { s: 4, f: 3 }, { s: 4, f: 5 },
-      { s: 5, f: 0 }, { s: 5, f: 2 }, { s: 5, f: 4 },
-      { s: 0, f: 0 }, { s: 0, f: 2 }, { s: 0, f: 4 }
-    ]
+    rootString: 1, // C5
+    offsets: {
+      major: [
+        { s: 1, f: 0 }, { s: 1, f: 2 }, { s: 1, f: 3 }, // C5
+        { s: 2, f: 0 }, { s: 2, f: 2 }, { s: 2, f: 3 }, // C4
+        { s: 3, f: 0 }, { s: 3, f: 2 },                // C3
+        { s: 4, f: 0 }, { s: 4, f: 1 }, { s: 4, f: 3 }, // C2
+        { s: 5, f: 0 }, { s: 5, f: 2 }, { s: 5, f: 3 }, // C1
+        { s: 0, f: 0 }, { s: 0, f: 2 }, { s: 0, f: 3 }  // C6
+      ]
+    }
   },
   {
     id: "s4",
-    name: "Esquema 4 (Forma de La / A-Shape)",
+    name: "Dibujo 4",
     type: "pattern",
-    rootString: 1,
-    offsets: [
-      { s: 1, f: 0 }, { s: 1, f: 2 }, { s: 1, f: 4 },
-      { s: 2, f: 0 }, { s: 2, f: 2 }, { s: 2, f: 4 },
-      { s: 3, f: -1 }, { s: 3, f: 1 }, { s: 3, f: 2 },
-      { s: 4, f: 0 }, { s: 4, f: 2 }, { s: 4, f: 3 },
-      { s: 5, f: 0 }, { s: 5, f: 2 }, { s: 5, f: 4 },
-      { s: 0, f: 0 }, { s: 0, f: 2 }, { s: 0, f: 4 }
-    ]
+    rootString: 1, // C5
+    offsets: {
+      major: [
+        { s: 1, f: 0 }, { s: 1, f: 2 }, { s: 1, f: 4 }, // C5
+        { s: 2, f: 0 }, { s: 2, f: 2 }, { s: 2, f: 4 }, // C4
+        { s: 3, f: 0 }, { s: 3, f: 2 },                // C3
+        { s: 4, f: 0 }, { s: 4, f: 2 }, { s: 4, f: 3 }, // C2
+        { s: 5, f: 0 }, { s: 5, f: 2 }, { s: 5, f: 4 }, // C1
+        { s: 0, f: 0 }, { s: 0, f: 2 }, { s: 0, f: 4 }  // C6
+      ]
+    }
   },
   {
     id: "s5",
-    name: "Esquema 5 (Forma de Sol / G-Shape)",
+    name: "Dibujo 5",
     type: "pattern",
-    rootString: 0,
-    offsets: [
-      { s: 0, f: 0 }, { s: 0, f: 2 }, { s: 0, f: 4 },
-      { s: 1, f: 0 }, { s: 1, f: 2 }, { s: 1, f: 4 },
-      { s: 2, f: 0 }, { s: 2, f: 2 }, { s: 2, f: 4 },
-      { s: 3, f: 1 }, { s: 3, f: 2 }, { s: 3, f: 4 },
-      { s: 4, f: 2 }, { s: 4, f: 4 }, { s: 4, f: 5 },
-      { s: 5, f: 0 }, { s: 5, f: 2 }, { s: 5, f: 4 }
-    ]
+    rootString: 1, // C5
+    offsets: {
+      major: [
+        { s: 1, f: 0 }, { s: 1, f: 2 }, { s: 1, f: 4 }, // C5
+        { s: 2, f: 0 }, { s: 2, f: 2 }, { s: 2, f: 4 }, // C4
+        { s: 3, f: 1 }, { s: 3, f: 2 }, { s: 3, f: 4 }, // C3
+        { s: 4, f: 2 }, { s: 4, f: 3 }, { s: 4, f: 5 }, // C2
+        { s: 5, f: 2 }, { s: 5, f: 4 }, { s: 5, f: 5 }, // C1
+        { s: 0, f: 0 }, { s: 0, f: 2 }, { s: 0, f: 4 }  // C6
+      ]
+    }
   }
 ];
 
@@ -322,36 +332,44 @@ function applyScaleHighlight() {
 
   // Caso 2: Esquemas Fijos
   if (shape.type === "pattern") {
-    // 1. Calcular Anchor Point
+    // 1. Calcular Anchor Point (Ancla física del esquema)
     const anchorStringIndex = shape.rootString;
     const rootName = rootSelect.value;
     const rootPc = NOTE_TO_PC[rootName];
+
+    // Si la escala es menor, el esquema físico se "estaciona" en la relativa mayor
+    let anchorPc = rootPc;
+    if (selectedScale === "minor") {
+      anchorPc = (rootPc + 3) % 12;
+    }
+
     const openPc = OPEN_STRING_PC[anchorStringIndex];
 
-    // Find candidate fret for root on anchor string
+    // Buscar traste del ancla
     let candidateFrets = [];
     for (let f = 0; f <= 20; f++) {
-      if ((openPc + f) % 12 === rootPc) {
+      if ((openPc + f) % 12 === anchorPc) {
         candidateFrets.push(f);
       }
     }
     const rootFret = candidateFrets[0];
     if (rootFret === undefined) return;
 
-    // 2. Iterate shape offsets
-    shape.offsets.forEach(off => {
+    // 2. Seleccionar Offsets
+    const activeOffsets = shape.offsets[selectedScale] || shape.offsets.major;
+    if (!activeOffsets) return;
+
+    activeOffsets.forEach(off => {
       const targetString = off.s;
       const targetFret = rootFret + off.f;
       const key = `${targetString}:${targetFret}`;
 
-      // VALIDATION: Only light up if backend says it's part of the scale
       if (currentScaleNotes.has(key)) {
         const cell = document.querySelector(`.cell[data-string-index="${targetString}"][data-fret="${targetFret}"]`);
         if (cell) {
           cell.classList.add("scale");
           if (currentRootNotes.has(key)) cell.classList.add("root");
 
-          // NUEVO: Sobreescribir el nombre de la nota con el del backend
           if (noteNamesMap.has(key)) {
             const noteEl = cell.querySelector(".note");
             if (noteEl) noteEl.textContent = noteNamesMap.get(key);
