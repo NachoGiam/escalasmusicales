@@ -74,10 +74,14 @@ SHAPES = {
     "s2": {
         "name": "Dibujo 2",
         "ref_string": 2,
-        "start_offset": 2,
+        "start_offset": 0,
         "patterns": {
-            0: [0, 1, 3], 1: [0, 1, 3], 2: [0, 2, 3],
-            3: [0, 2, 3], 4: [1, 3],    5: [0, 1, 3]
+            0: [0, 2, 3],  # C6: [TI, TI+2, TI+3]
+            1: [0, 2],     # C5: [TI, TI+2]
+            2: [-1, 0, 2], # C4: [TI-1, TI, TI+2]
+            3: [-1, 0, 2], # C3: [TI-1, TI, TI+2]
+            4: [0, 2, 3],  # C2: [TI, TI+2, TI+3]
+            5: [0, 2, 3]   # C1: [TI, TI+2, TI+3]
         }
     },
     "s3": {
@@ -136,11 +140,17 @@ def get_scale_notes(root_name, scale_type, drawing_id=None):
         ref_string = shape["ref_string"]
         open_pc = OPEN_STRING_PCS[ref_string]
         
+        # Calcular el mínimo offset global del patrón para evitar trastes negativos
+        min_rel_fret = 0
+        for rel_frets in shape["patterns"].values():
+            if rel_frets:
+                min_rel_fret = min(min_rel_fret, min(rel_frets))
+
         tonic_fret = None
         for f in range(21):
             if (open_pc + f) % 12 == anchor_pc:
-                # Nos aseguramos de que el Traste_Inicio (f - offset) no sea negativo
-                if f - shape["start_offset"] >= 0:
+                # TI = f - start_offset. Queremos TI + min_rel_fret >= 0
+                if (f - shape["start_offset"] + min_rel_fret) >= 0:
                     tonic_fret = f
                     break
         
