@@ -187,17 +187,17 @@ SHAPES.forEach(s => {
 // 4) Backend Fetching
 // =========================
 
-async function fetchScaleData(rootName, scaleType) {
-  // Convert # to s for URL safety if needed, but modern browsers handle encoded # fine. 
-  // Let's replace just in case, or match backend logic.
-  // Backend replaces 's' with '#', so we send 's' instead of '#'.
+async function fetchScaleData(rootName, scaleType, drawingId = "all") {
   const safeRoot = rootName.replace('#', 's');
+  const url = drawingId === "all"
+    ? `/api/escala/${safeRoot}/${scaleType}`
+    : `/api/escala/${safeRoot}/${scaleType}/dibujo/${drawingId}`;
+
   try {
-    const res = await fetch(`/api/escala/${safeRoot}/${scaleType}`);
+    const res = await fetch(url);
     if (!res.ok) throw new Error("API Error");
     const data = await res.json();
 
-    // Store in Sets for O(1) lookup
     currentScaleNotes.clear();
     currentRootNotes.clear();
     noteNamesMap.clear();
@@ -290,7 +290,7 @@ function refreshNoteLabels() {
 
 async function updateAndApply() {
   if (selectedScale) {
-    await fetchScaleData(rootSelect.value, selectedScale);
+    await fetchScaleData(rootSelect.value, selectedScale, selectedShapeId);
   } else {
     currentScaleNotes.clear();
     currentRootNotes.clear();
@@ -302,82 +302,23 @@ function applyScaleHighlight() {
   document.querySelectorAll(".cell.scale, .cell.root").forEach(el => el.classList.remove("scale", "root"));
   if (!selectedScale) return;
 
-  const shape = SHAPES.find(s => s.id === selectedShapeId) || SHAPES[0];
+  // Renderizar lo que el backend devolvió (ya filtrado por dibujo si aplica)
+  currentScaleNotes.forEach(key => {
+    const [sStr, fStr] = key.split(":");
+    const sIdx = Number(sStr);
+    const fret = Number(fStr);
 
-  // Caso 1: Mostrar todo (pero validado contra backend)
-  if (shape.type === "range") {
-    // Iterate over all valid notes from backend
-    currentScaleNotes.forEach(key => {
-      const [sStr, fStr] = key.split(":");
-      const sIdx = Number(sStr);
-      const fret = Number(fStr);
+    const cell = document.querySelector(`.cell[data-string-index="${sIdx}"][data-fret="${fret}"]`);
+    if (cell) {
+      cell.classList.add("scale");
+      if (currentRootNotes.has(key)) cell.classList.add("root");
 
-      // Check range if apply
-      if (fret !== 0 && (fret < shape.from || fret > shape.to)) return;
-
-      const cell = document.querySelector(`.cell[data-string-index="${sIdx}"][data-fret="${fret}"]`);
-      if (cell) {
-        cell.classList.add("scale");
-        if (currentRootNotes.has(key)) cell.classList.add("root");
-
-        // NUEVO: Sobreescribir el nombre de la nota con el del backend
-        if (noteNamesMap.has(key)) {
-          const noteEl = cell.querySelector(".note");
-          if (noteEl) noteEl.textContent = noteNamesMap.get(key);
-        }
-      }
-    });
-    return;
-  }
-
-  // Caso 2: Esquemas Fijos
-  if (shape.type === "pattern") {
-    // 1. Calcular Anchor Point (Ancla física del esquema)
-    const anchorStringIndex = shape.rootString;
-    const rootName = rootSelect.value;
-    const rootPc = NOTE_TO_PC[rootName];
-
-    // Si la escala es menor, el esquema físico se "estaciona" en la relativa mayor
-    let anchorPc = rootPc;
-    if (selectedScale === "minor") {
-      anchorPc = (rootPc + 3) % 12;
-    }
-
-    const openPc = OPEN_STRING_PC[anchorStringIndex];
-
-    // Buscar traste del ancla
-    let candidateFrets = [];
-    for (let f = 0; f <= 20; f++) {
-      if ((openPc + f) % 12 === anchorPc) {
-        candidateFrets.push(f);
+      if (noteNamesMap.has(key)) {
+        const noteEl = cell.querySelector(".note");
+        if (noteEl) noteEl.textContent = noteNamesMap.get(key);
       }
     }
-    const rootFret = candidateFrets[0];
-    if (rootFret === undefined) return;
-
-    // 2. Seleccionar Offsets
-    const activeOffsets = shape.offsets[selectedScale] || shape.offsets.major;
-    if (!activeOffsets) return;
-
-    activeOffsets.forEach(off => {
-      const targetString = off.s;
-      const targetFret = rootFret + off.f;
-      const key = `${targetString}:${targetFret}`;
-
-      if (currentScaleNotes.has(key)) {
-        const cell = document.querySelector(`.cell[data-string-index="${targetString}"][data-fret="${targetFret}"]`);
-        if (cell) {
-          cell.classList.add("scale");
-          if (currentRootNotes.has(key)) cell.classList.add("root");
-
-          if (noteNamesMap.has(key)) {
-            const noteEl = cell.querySelector(".note");
-            if (noteEl) noteEl.textContent = noteNamesMap.get(key);
-          }
-        }
-      }
-    });
-  }
+  });
 }
 
 // =========================
@@ -385,7 +326,7 @@ function applyScaleHighlight() {
 // =========================
 
 rootSelect.addEventListener("change", () => { refreshNoteLabels(); updateAndApply(); });
-shapeSelect.addEventListener("change", () => { selectedShapeId = shapeSelect.value; refreshNoteLabels(); applyScaleHighlight(); });
+shapeSelect.addEventListener("change", () => { selectedShapeId = shapeSelect.value; updateAndApply(); });
 
 document.getElementById("majorBtn").addEventListener("click", () => {
   selectedScale = (selectedScale === "major") ? null : "major";

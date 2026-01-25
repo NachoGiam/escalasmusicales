@@ -55,60 +55,138 @@ SCALE_SPELLINGS = {
 
 
 # Afinación Estándar (Pitch Class de cuerdas al aire)
-# Cuerdas de abajo hacia arriba en la UI (0=E grave en backend logic, pero en UI often reversed)
-# En script.js: strings = ["E", "A", "D", "G", "B", "e"] -> Indices 0..5
-# UI String Index: 0=Hi E ... 5=Low E?
-# Script.js: const STRING_ORDER = [5, 4, 3, 2, 1, 0];
-# script.js: const OPEN_STRING_PC = [4, 9, 2, 7, 11, 4]; -> Indices match strings array
-# Index 0: E (4)
-# Index 1: A (9)
-# Index 2: D (2)
-# Index 3: G (7)
-# Index 4: B (11)
-# Index 5: e (4)
-OPEN_STRING_PCS = [4, 9, 2, 7, 11, 4]
+OPEN_STRING_PCS = [4, 9, 2, 7, 11, 4] # Indices: 0=E, 1=A, 2=D, 3=G, 4=B, 5=e
+
+# --- Dibujos / Patrones Geométricos (Bloques Dinámicos) ---
+# ref_string: Cuerda para buscar la tónica
+# start_offset: Cuánto restar al traste de la tónica para hallar el Traste_Inicio
+# patterns: Mapas de trastes relativos por cuerda (Índice 0=E grave ... 5=e aguda)
+SHAPES = {
+    "s1": {
+        "name": "Dibujo 1",
+        "ref_string": 0,
+        "start_offset": 1,
+        "patterns": {
+            0: [0, 1, 3], 1: [0, 1, 3], 2: [0, 2, 3],
+            3: [0, 2, 3], 4: [0, 1, 3], 5: [0, 1, 3]
+        }
+    },
+    "s2": {
+        "name": "Dibujo 2",
+        "ref_string": 2,
+        "start_offset": 2,
+        "patterns": {
+            0: [0, 1, 3], 1: [0, 1, 3], 2: [0, 2, 3],
+            3: [0, 2, 3], 4: [1, 3],    5: [0, 1, 3]
+        }
+    },
+    "s3": {
+        "name": "Dibujo 3",
+        "ref_string": 1,
+        "start_offset": 0,
+        "patterns": {
+            0: [0, 2, 3], 1: [0, 2, 3], 2: [0, 2, 3],
+            3: [0, 2],    4: [0, 1, 3], 5: [0, 2, 3]
+        }
+    },
+    "s4": {
+        "name": "Dibujo 4",
+        "ref_string": 1,
+        "start_offset": 3,
+        "patterns": {
+            0: [1, 2, 4], 1: [1, 3, 4], 2: [1, 3, 4],
+            3: [1, 3],    4: [1, 2, 4], 5: [1, 2, 4]
+        }
+    },
+    "s5": {
+        "name": "Dibujo 5",
+        "ref_string": 0,
+        "start_offset": 3,
+        "patterns": {
+            0: [1, 3, 4], 1: [1, 3, 4], 2: [1, 3],
+            3: [1, 2, 4], 4: [1, 2, 4], 5: [1, 3, 4]
+        }
+    }
+}
 
 
-def get_scale_notes(root_name, scale_type):
+def get_scale_notes(root_name, scale_type, drawing_id=None):
     """
-    Calcula todas las posiciones válidas para una escala en el diapasón.
-    Retorna una lista de dicts: {'string': s, 'fret': f, 'note': pc, 'is_root': bool, 'note_name': str}
+    Calcula las posiciones basadas en bloques geométricos si se pasa drawing_id.
     """
     if root_name not in NOTE_TO_PC:
         return []
     
     scale_intervals = SCALES.get(scale_type, SCALES["major"])
     root_pc = NOTE_TO_PC[root_name]
-    
-    # Obtener el mapa de nombres para esta escala específica
     spelling_map = SCALE_SPELLINGS.get((root_name, scale_type))
-    # Fallback por si falta alguna definición (usamos lógica básica sharps)
     fallback_names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
+    # Caso: Filtrado por Dibujo Geométrico (Traste_Inicio + Patterns)
+    if drawing_id and drawing_id in SHAPES and drawing_id != "all":
+        shape = SHAPES[drawing_id]
+        
+        # 1. Encontrar traste de la tónica en la cuerda de referencia
+        # Nota: Usamos la relativa mayor para anclar si es menor, para mantener coherencia física
+        anchor_pc = root_pc
+        if scale_type == "minor":
+            # Para que el dibujo físico sea el mismo, buscamos la tónica de la relativa mayor
+            anchor_pc = (root_pc + 3) % 12
+            
+        ref_string = shape["ref_string"]
+        open_pc = OPEN_STRING_PCS[ref_string]
+        
+        tonic_fret = None
+        for f in range(21):
+            if (open_pc + f) % 12 == anchor_pc:
+                # Nos aseguramos de que el Traste_Inicio (f - offset) no sea negativo
+                if f - shape["start_offset"] >= 0:
+                    tonic_fret = f
+                    break
+        
+        if tonic_fret is None: return []
+
+        # 2. Calcular Traste_Inicio
+        start_fret = tonic_fret - shape["start_offset"]
+        
+        # 3. Aplicar patrones sumando al Traste_Inicio
+        drawing_positions = []
+        for s_idx, relative_frets in shape["patterns"].items():
+            for f_off in relative_frets:
+                target_fret = start_fret + f_off
+                
+                # Validar rango del diapasón
+                if 0 <= target_fret <= 20:
+                    current_pc = (OPEN_STRING_PCS[s_idx] + target_fret) % 12
+                    interval = (current_pc - root_pc + 12) % 12
+                    
+                    # Validar si la nota pertenece a la escala
+                    if interval in scale_intervals:
+                        note_name = spelling_map[current_pc] if spelling_map and current_pc in spelling_map else fallback_names[current_pc]
+                        drawing_positions.append({
+                            "string": s_idx,
+                            "fret": target_fret,
+                            "is_root": (current_pc == root_pc),
+                            "note_name": note_name
+                        })
+        return drawing_positions
+
+    # Caso: Todas las posiciones (rango completo)
     valid_positions = []
-    
-    # Recorremos 6 cuerdas y 21 trastes (0-20)
     for string_idx in range(6):
         open_pc = OPEN_STRING_PCS[string_idx]
-        
         for fret in range(21):
             current_pc = (open_pc + fret) % 12
             interval = (current_pc - root_pc + 12) % 12
-            
             if interval in scale_intervals:
-                # Determinar nombre
-                if spelling_map and current_pc in spelling_map:
-                    note_name = spelling_map[current_pc]
-                else:
-                    note_name = fallback_names[current_pc]
-
+                note_name = spelling_map[current_pc] if spelling_map and current_pc in spelling_map else fallback_names[current_pc]
                 valid_positions.append({
-                    "string": string_idx, # Coincide con el índice de script.js
+                    "string": string_idx,
                     "fret": fret,
                     "is_root": (current_pc == root_pc),
                     "note_name": note_name
                 })
-                
+    return valid_positions
     return valid_positions
 
 
@@ -117,10 +195,11 @@ def home():
     return render_template('index.html')
 
 @app.route('/api/escala/<tonica>/<tipo>')
-def api_escala(tonica, tipo):
+@app.route('/api/escala/<tonica>/<tipo>/dibujo/<drawing_id>')
+def api_escala(tonica, tipo, drawing_id=None):
     # Sanitize inputs
     tonica = tonica.replace('s', '#') # Por si viene como Cs (C sharp)
-    positions = get_scale_notes(tonica, tipo)
+    positions = get_scale_notes(tonica, tipo, drawing_id)
     return {"positions": positions}
 
 if __name__ == '__main__':
