@@ -448,15 +448,29 @@ function startPractice() {
     alert("Primero selecciona una escala y tónica.");
     return;
   }
+  // Unificamos offsets: 0 es la cuerda más grave (E), 5 la más aguda (e)
   const STRING_OFFSETS = { 0: 0, 1: 5, 2: 10, 3: 15, 4: 19, 5: 24 };
+
   practiceSequence = cells.map(cell => {
     const sIdx = Number(cell.dataset.stringIndex);
     const fret = Number(cell.dataset.fret);
     const pitchVal = STRING_OFFSETS[sIdx] + fret;
     return { cell, sIdx, fret, pitchVal };
   });
-  practiceSequence.sort((a, b) => a.pitchVal - b.pitchVal);
+
+  // 1. Fase Subida: Ordenar (Cuerda 6 a 1, Traste Ascendente)
+  practiceSequence.sort((a, b) => {
+    if (a.sIdx !== b.sIdx) return a.sIdx - b.sIdx;
+    return a.fret - b.fret;
+  });
+
   if (practiceSequence.length === 0) return;
+
+  // 2. Fase Bajada: Invertir y quitar extremos para evitar duplicados en el loop (aguda y grave)
+  const descendingPart = [...practiceSequence].reverse().slice(1, -1);
+
+  // 3. Unión: Secuencia Completa
+  practiceSequence = practiceSequence.concat(descendingPart);
   practiceIndex = 0;
   const bpm = document.getElementById("bpmInput").value;
   const ms = 60000 / bpm;
@@ -477,7 +491,8 @@ function runPracticeTick() {
 }
 
 function playNote(stringIndex, fret) {
-  const STRING_OFFSETS = { 5: 0, 4: 5, 3: 10, 2: 15, 1: 19, 0: 24 };
+  // 0:E grave, 1:A, 2:D, 3:G, 4:B, 5:e agudo
+  const STRING_OFFSETS = { 0: 0, 1: 5, 2: 10, 3: 15, 4: 19, 5: 24 };
   const semitones = STRING_OFFSETS[stringIndex] + fret;
   const freq = 82.41 * Math.pow(2, semitones / 12);
   const osc = audioCtx.createOscillator();
