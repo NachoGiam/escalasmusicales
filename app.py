@@ -87,14 +87,14 @@ SHAPES = {
     "s3": {
         "name": "Dibujo 3",
         "ref_string": 1,
-        "start_offset": 0,
+        "start_offset": 3,
         "patterns": {
-            0: [0, 2, 3],  # C6: [TI, TI+2, TI+3]
-            1: [0, 2, 3],  # C5: [TI, TI+2, TI+3] (Tónica en TI)
-            2: [0, 2, 3],  # C4: [TI, TI+2, TI+3]
-            3: [0, 2],     # C3: [TI, TI+2]
-            4: [0, 1, 3],  # C2: [TI, TI+1, TI+3]
-            5: [0, 2, 3]   # C1: [TI, TI+2, TI+3]
+            0: [0, 1, 3], # C6: [E, F, G] en DO traste 12
+            1: [0, 2, 3], # C5: [A, B, C]
+            2: [0, 2, 3], # C4: [D, E, F]
+            3: [0, 2],    # C3: [G, A]
+            4: [0, 1, 3], # C2: [B, C, D]
+            5: [0, 1, 3]  # C1: [E, F, G]
         }
     },
     "s4": {
