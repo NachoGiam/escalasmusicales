@@ -100,10 +100,14 @@ SHAPES = {
     "s4": {
         "name": "Dibujo 4",
         "ref_string": 1,
-        "start_offset": 3,
+        "start_offset": 0,
         "patterns": {
-            0: [1, 2, 4], 1: [1, 3, 4], 2: [1, 3, 4],
-            3: [1, 3],    4: [1, 2, 4], 5: [1, 2, 4]
+            0: [0, 2],     # C6: [T, +2]
+            1: [-1, 0, 2], # C5: [-1, T, +2]
+            2: [-1, 0, 2], # C4: [-1, T, +2]
+            3: [-1, 1, 2], # C3: [-2, T, +1] (Semítonos relativos ajustados)
+            4: [0, 2, 3],  # C2: [+2, +4, +5]
+            5: [0, 2]      # C1: [+7, +9]
         }
     },
     "s5": {
@@ -144,6 +148,16 @@ def get_scale_notes(root_name, scale_type, drawing_id=None):
         ref_string = shape["ref_string"]
         open_pc = OPEN_STRING_PCS[ref_string]
         
+        # 1. Encontrar traste de la tónica en la cuerda de referencia
+        # Nota: Usamos la relativa mayor para anclar si es menor
+        anchor_pc = root_pc
+        if scale_type == "minor":
+            # Para que el dibujo físico sea el mismo, buscamos la tónica de la relativa mayor
+            anchor_pc = (root_pc + 3) % 12
+            
+        ref_string = shape["ref_string"]
+        open_pc = OPEN_STRING_PCS[ref_string]
+        
         # Calcular el mínimo offset global del patrón para evitar trastes negativos
         min_rel_fret = 0
         for rel_frets in shape["patterns"].values():
@@ -153,7 +167,9 @@ def get_scale_notes(root_name, scale_type, drawing_id=None):
         tonic_fret = None
         for f in range(21):
             if (open_pc + f) % 12 == anchor_pc:
-                # TI = f - start_offset. Queremos TI + min_rel_fret >= 0
+                # REGLA DE BLOQUE: El inicio del bloque (TI = f - offset)
+                # sumado al min_rel_fret debe ser >= 0. 
+                # Si no, buscamos la siguiente octava (fret + 12).
                 if (f - shape["start_offset"] + min_rel_fret) >= 0:
                     tonic_fret = f
                     break
