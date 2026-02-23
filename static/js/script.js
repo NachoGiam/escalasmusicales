@@ -167,7 +167,7 @@ const SHAPES = [
   }
 ];
 
-let selectedScale = null;
+let selectedScale = "";
 let selectedShapeId = "all";
 
 // Inicializar Selectores
@@ -182,6 +182,8 @@ SHAPES.forEach(s => {
   opt.value = s.id; opt.textContent = s.name;
   shapeSelect.appendChild(opt);
 });
+
+const scaleSelect = document.getElementById("scaleSelect");
 
 // =========================
 // 4) Backend Fetching
@@ -328,19 +330,15 @@ function applyScaleHighlight() {
 rootSelect.addEventListener("change", () => { refreshNoteLabels(); updateAndApply(); });
 shapeSelect.addEventListener("change", () => { selectedShapeId = shapeSelect.value; updateAndApply(); });
 
-document.getElementById("majorBtn").addEventListener("click", () => {
-  selectedScale = (selectedScale === "major") ? null : "major";
-  updateUI();
-});
-
-document.getElementById("minorBtn").addEventListener("click", () => {
-  selectedScale = (selectedScale === "minor") ? null : "minor";
+scaleSelect.addEventListener("change", () => {
+  selectedScale = scaleSelect.value;
   updateUI();
 });
 
 document.getElementById("clearBtn").addEventListener("click", () => {
   document.querySelectorAll(".cell.on, .cell.scale, .cell.root").forEach(el => el.classList.remove("on", "scale", "root"));
-  selectedScale = null;
+  selectedScale = "";
+  scaleSelect.value = "";
   currentScaleNotes.clear();
   currentRootNotes.clear();
   noteNamesMap.clear();
@@ -355,8 +353,7 @@ function updateUI() {
 }
 
 function updateUIButtons() {
-  document.getElementById("majorBtn").classList.toggle("active", selectedScale === "major");
-  document.getElementById("minorBtn").classList.toggle("active", selectedScale === "minor");
+  scaleSelect.value = selectedScale;
 }
 
 // Helpers

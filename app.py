@@ -14,7 +14,23 @@ NOTE_TO_PC = {
 # Intervalos de escalas (Semitonos desde la tónica)
 SCALES = {
     "major": {0, 2, 4, 5, 7, 9, 11},
-    "minor": {0, 2, 3, 5, 7, 8, 10}  # Menor Natural
+    "dorian": {0, 2, 3, 5, 7, 9, 10},
+    "phrygian": {0, 1, 3, 5, 7, 8, 10},
+    "lydian": {0, 2, 4, 6, 7, 9, 11},
+    "mixolydian": {0, 2, 4, 5, 7, 9, 10},
+    "minor": {0, 2, 3, 5, 7, 8, 10},  # Menor Natural
+    "locrian": {0, 1, 3, 5, 6, 8, 10}
+}
+
+# Offset para encontrar la tónica de la escala Mayor Relativa (en semitonos)
+RELATIVE_MAJOR_OFFSET = {
+    "major": 0,
+    "dorian": 10,
+    "phrygian": 8,
+    "lydian": 7,
+    "mixolydian": 5,
+    "minor": 3,
+    "locrian": 1
 }
 
 # Diccionario de Nombres Correctos (Spelling)
@@ -52,6 +68,28 @@ SCALE_SPELLINGS = {
     ("G", "minor"):  {7: "G", 9: "A", 10: "Bb", 0: "C", 2: "D", 3: "Eb", 5: "F"},
     ("D", "minor"):  {2: "D", 4: "E", 5: "F", 7: "G", 9: "A", 10: "Bb", 0: "C"},
 }
+
+MODE_OFFSETS_FROM_MAJOR = {
+    "dorian": 2,      # 2nd degree
+    "phrygian": 4,    # 3rd degree
+    "lydian": 5,      # 4th degree
+    "mixolydian": 7,  # 5th degree
+    "minor": 9,       # 6th degree
+    "locrian": 11     # 7th degree
+}
+
+# Auto-generar spellings para los modos basados en la escala mayor relativa
+nuevos_spellings = {}
+for (key_root, key_type), spelling_dict in list(SCALE_SPELLINGS.items()):
+    if key_type == "major":
+        key_pc = NOTE_TO_PC[key_root]
+        for mode_name, semitones_from_root in MODE_OFFSETS_FROM_MAJOR.items():
+            mode_root_pc = (key_pc + semitones_from_root) % 12
+            if mode_root_pc in spelling_dict:
+                mode_root_name = spelling_dict[mode_root_pc]
+                nuevos_spellings[(mode_root_name, mode_name)] = spelling_dict
+
+SCALE_SPELLINGS.update(nuevos_spellings)
 
 
 # Afinación Estándar (Pitch Class de cuerdas al aire)
@@ -143,21 +181,8 @@ def get_scale_notes(root_name, scale_type, drawing_id=None):
         shape = SHAPES[drawing_id]
         
         # 1. Encontrar traste de la tónica en la cuerda de referencia
-        # Nota: Usamos la relativa mayor para anclar si es menor, para mantener coherencia física
-        anchor_pc = root_pc
-        if scale_type == "minor":
-            # Para que el dibujo físico sea el mismo, buscamos la tónica de la relativa mayor
-            anchor_pc = (root_pc + 3) % 12
-            
-        ref_string = shape["ref_string"]
-        open_pc = OPEN_STRING_PCS[ref_string]
-        
-        # 1. Encontrar traste de la tónica en la cuerda de referencia
-        # Nota: Usamos la relativa mayor para anclar si es menor
-        anchor_pc = root_pc
-        if scale_type == "minor":
-            # Para que el dibujo físico sea el mismo, buscamos la tónica de la relativa mayor
-            anchor_pc = (root_pc + 3) % 12
+        # Nota: Usamos la relativa mayor para anclar los modos, para mantener coherencia física
+        anchor_pc = (root_pc + RELATIVE_MAJOR_OFFSET.get(scale_type, 0)) % 12
             
         ref_string = shape["ref_string"]
         open_pc = OPEN_STRING_PCS[ref_string]

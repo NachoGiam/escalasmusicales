@@ -27,9 +27,18 @@
       <select id="rootSelect" aria-label="Seleccionar tónica"></select>
       <label class="hint" for="shapeSelect">Dibujo:</label>
       <select id="shapeSelect"></select>
-      <!-- NUEVO: botones escala -->
-      <button id="majorBtn" type="button">Escala mayor</button>
-      <button id="minorBtn" type="button">Escala menor</button>
+      <!-- NUEVO: selector modo -->
+      <label class="hint" for="scaleSelect">Modo:</label>
+      <select id="scaleSelect" aria-label="Seleccionar modo">
+        <option value="">-- Ninguno --</option>
+        <option value="major">Mayor (Jónico)</option>
+        <option value="dorian">Dórico</option>
+        <option value="phrygian">Frigio</option>
+        <option value="lydian">Lidio</option>
+        <option value="mixolydian">Mixolidio</option>
+        <option value="minor">Menor (Eólico)</option>
+        <option value="locrian">Locrio</option>
+      </select>
       <span class="spacer"></span>
       <!-- METRÓNOMO -->
       <button id="metroToggle">▶️ Metrónomo</button>
