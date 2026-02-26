@@ -4,6 +4,7 @@ from flask import Flask, render_template
 app = Flask(__name__)
 
 # --- Lógica de Música (Backend) ---
+# Define la estructura y reglas musicales para generar las escalas.
 
 # Mapeo de Notas a Pitch Class (0-11)
 NOTE_TO_PC = {
@@ -11,7 +12,7 @@ NOTE_TO_PC = {
     "F#": 6, "Gb": 6, "G": 7, "G#": 8, "Ab": 8, "A": 9, "A#": 10, "Bb": 10, "B": 11
 }
 
-# Intervalos de escalas (Semitonos desde la tónica)
+# Intervalos que definen cada escala/modo (distancia en semitonos desde la tónica)
 SCALES = {
     "major": {0, 2, 4, 5, 7, 9, 11},
     "dorian": {0, 2, 3, 5, 7, 9, 10},
@@ -34,8 +35,7 @@ RELATIVE_MAJOR_OFFSET = {
 }
 
 # Diccionario de Nombres Correctos (Spelling)
-# Mapea (Tónica, TipoEscala, PitchClass) -> NombreNota
-# Se define explícitamente para garantizar teoría correcta (ej: Gb vs F#)
+# Garantiza que las escalas usen nombres de notas teóricamente correctos (ej: F# vs Gb).
 SCALE_SPELLINGS = {
     # --- MAYORES ---
     ("C", "major"):  {0: "C", 2: "D", 4: "E", 5: "F", 7: "G", 9: "A", 11: "B"},
@@ -78,7 +78,8 @@ MODE_OFFSETS_FROM_MAJOR = {
     "locrian": 11     # 7th degree
 }
 
-# Auto-generar spellings para los modos basados en la escala mayor relativa
+# Auto-generar spellings para los modos basados en la escala mayor relativa.
+# Esto evita tener que escribir manualmente cada combinación de tono y modo.
 nuevos_spellings = {}
 for (key_root, key_type), spelling_dict in list(SCALE_SPELLINGS.items()):
     if key_type == "major":
@@ -166,7 +167,8 @@ SHAPES = {
 
 def get_scale_notes(root_name, scale_type, drawing_id=None):
     """
-    Calcula las posiciones basadas en bloques geométricos si se pasa drawing_id.
+    Función principal que calcula qué notas y en qué trastes deben marcarse.
+    Soporta visualización de todo el mástil o filtrado por 'Dibujos' (shapes).
     """
     if root_name not in NOTE_TO_PC:
         return []
@@ -256,7 +258,10 @@ def home():
 @app.route('/api/escala/<tonica>/<tipo>')
 @app.route('/api/escala/<tonica>/<tipo>/dibujo/<drawing_id>')
 def api_escala(tonica, tipo, drawing_id=None):
-    # Sanitize inputs
+    """
+    Endpoint de la API que el frontend consulta para obtener los datos de la escala.
+    """
+    # Limpiar entrada (ej: convertir 's' a '#' para sostenidos)
     tonica = tonica.replace('s', '#') # Por si viene como Cs (C sharp)
     positions = get_scale_notes(tonica, tipo, drawing_id)
     return {"positions": positions}

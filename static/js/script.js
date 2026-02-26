@@ -1,6 +1,5 @@
-// =========================
-// 1) Datos base
-// =========================
+// 1) Datos base y Configuración Musical
+// Define las notas, afinación y estructuras de datos para las tonalidades.
 
 const strings = ["E", "A", "D", "G", "B", "e"];
 const frets = Array.from({ length: 20 }, (_, i) => i + 1); // 20 trastes
@@ -43,16 +42,16 @@ const KEY_NAME_MAPS = {
 // GLOBAL DATA
 let currentScaleNotes = new Set(); // Stores "stringIndex:fret"
 let currentRootNotes = new Set();  // Stores "stringIndex:fret" for roots
-// NUEVO: Mapa para guardar el nombre de la nota que dice el backend
-let noteNamesMap = new Map(); // Key: "string:fret" -> Value: "C#", "Gb", etc.
+let noteNamesMap = new Map(); // Mapa para traducir posiciones a nombres de notas específicos
 
+// Referencias a elementos del DOM
 const grid = document.getElementById("grid");
 const rootSelect = document.getElementById("rootSelect");
 const shapeSelect = document.getElementById("shapeSelect");
+const scaleSelect = document.getElementById("scaleSelect");
 
-// =========================
-// 2) Lógica de Nombres
-// =========================
+// 2) Lógica de Nombres de Notas
+// Funciones auxiliares para decidir si usar sostenidos (#) o bemoles (b).
 
 function shouldUseFlats(rootName, selectedScale) {
   const keyName = selectedScale === "minor" ? rootName + "m" : rootName;
@@ -73,9 +72,8 @@ function pcToName(pc, rootName, selectedScale) {
   return preferFlats ? PC_TO_FLAT[pc] : PC_TO_SHARP[pc];
 }
 
-// =========================
-// 3) Shapes (Conservado para lógica espacial)
-// =========================
+// 3) Shapes / Dibujos del Sistema CAGED
+// Lógica para filtrar escalas por patrones físicos en el diapasón.
 
 const SHAPES = [
   {
@@ -183,11 +181,10 @@ SHAPES.forEach(s => {
   shapeSelect.appendChild(opt);
 });
 
-const scaleSelect = document.getElementById("scaleSelect");
+// La variable scaleSelect ya fue declarada en la sección de 'Datos Globales'.
 
-// =========================
-// 4) Backend Fetching
-// =========================
+// 4) Comunicación con el Backend
+// Obtiene los datos de las notas de la escala desde la API de Flask.
 
 async function fetchScaleData(rootName, scaleType, drawingId = "all") {
   const safeRoot = rootName.replace('#', 's');
@@ -219,9 +216,8 @@ async function fetchScaleData(rootName, scaleType, drawingId = "all") {
   }
 }
 
-// =========================
-// 5) Render y UI
-// =========================
+// 5) Renderizado del Diapasón y UI
+// Genera visualmente los trastes, cuerdas y marcadores de nota.
 
 function renderBoard() {
   grid.innerHTML = "";
@@ -323,9 +319,8 @@ function applyScaleHighlight() {
   });
 }
 
-// =========================
-// 6) Eventos
-// =========================
+// 6) Manejo de Eventos (Interacción del Usuario)
+// Detecta cambios en los selectores y clics en los botones.
 
 rootSelect.addEventListener("change", () => { refreshNoteLabels(); updateAndApply(); });
 shapeSelect.addEventListener("change", () => { selectedShapeId = shapeSelect.value; updateAndApply(); });
@@ -361,9 +356,8 @@ function makeDiv(cls, text) { const d = document.createElement("div"); d.classNa
 function dotMarker() { const d = document.createElement("div"); d.className = "m"; return d; }
 function doubleMarker() { const d = document.createElement("div"); d.className = "m"; return d; }
 
-// =========================
-// 7) Metrónomo & Práctica (Mantenido igual)
-// =========================
+// 7) Herramientas: Metrónomo y Modo Práctica
+// Lógica de sonido (AudioContext) y secuenciador de notas.
 
 let audioCtx;
 let metroInterval;
