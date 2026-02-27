@@ -14,12 +14,10 @@ const NOTE_TO_PC = {
   "E#": 5, "Cb": 11 // Enarmónicos especiales para escalas teóricas
 };
 
-// 12 Tonalidades sugeridas por el profesor
+// 12 Tonalidades
 const NOTE_NAMES = ["C", "G", "D", "A", "E", "B", "Gb", "Db", "Ab", "Eb", "Bb", "F"];
 
 const OPEN_STRING_PC = [4, 9, 2, 7, 11, 4];
-// REMOVE: const MAJOR = new Set([0, 2, 4, 5, 7, 9, 11]);
-// REMOVE: const MINOR_NATURAL = new Set([0, 2, 3, 5, 7, 8, 10]);
 
 // Tonalidades que siempre usan bemoles
 const FLAT_KEYS = new Set([
@@ -27,7 +25,7 @@ const FLAT_KEYS = new Set([
   "Dm", "Gm", "Cm", "Fm", "Bbm", "Ebm"
 ]);
 
-// Mapeos específicos para evitar repetir letras (Regla del profesor)
+// Mapeos específicos para evitar repetir letras 
 const KEY_NAME_MAPS = {
   "F#": ["F#", "G#", "A#", "B", "C#", "D#", "E#"],
   "Gb": ["Gb", "Ab", "Bb", "Cb", "Db", "Eb", "F"],
@@ -221,20 +219,36 @@ async function fetchScaleData(rootName, scaleType, drawingId = "all") {
 
 function renderBoard() {
   grid.innerHTML = "";
-  grid.appendChild(makeDiv("fret-label open", "0"));
-  grid.appendChild(makeDiv("fret-label", ""));
+
+  // 1. Fila de etiquetas de trastes
+  grid.appendChild(makeDiv("fret-label", "")); // Esquina superior izquierda
+  grid.appendChild(makeDiv("fret-label", "0")); // Traste 0
   frets.forEach(f => grid.appendChild(makeDiv("fret-label", f)));
 
-  const STRING_ORDER = [5, 4, 3, 2, 1, 0];
+  const STRING_ORDER = [5, 4, 3, 2, 1, 0]; // De e aguda a E grave
+
+  // 2. Generar Capa de Cuerdas y Celdas
+  const stringsLayer = document.getElementById("strings");
+  stringsLayer.innerHTML = "";
+
   STRING_ORDER.forEach((stringIndex) => {
-    const s = strings[stringIndex];
-    const openCell = createCell(stringIndex, 0, true);
-    grid.appendChild(openCell);
-    grid.appendChild(makeDiv("string-label", s));
+    // Agregar etiqueta de cuerda a la grilla
+    grid.appendChild(makeDiv("string-label", strings[stringIndex]));
+
+    // Agregar celdas (traste 0 + trastes 1-20)
+    grid.appendChild(createCell(stringIndex, 0, true));
     frets.forEach(fret => {
       grid.appendChild(createCell(stringIndex, fret, false));
     });
+
+    // Agregar línea de cuerda a la capa de cuerdas
+    const sLine = document.createElement("div");
+    sLine.className = "string-line";
+    sLine.dataset.string = stringIndex;
+    stringsLayer.appendChild(sLine);
   });
+
+  renderInlays();
 }
 
 function createCell(stringIndex, fret, isOpen) {
@@ -243,35 +257,44 @@ function createCell(stringIndex, fret, isOpen) {
   cell.dataset.stringIndex = stringIndex;
   cell.dataset.fret = fret;
 
-  const dot = document.createElement("div");
-  dot.className = "dot";
-  cell.appendChild(dot);
-
   const noteEl = document.createElement("div");
   noteEl.className = "note";
   cell.appendChild(noteEl);
 
-  cell.addEventListener("click", () => cell.classList.toggle("on"));
+  cell.addEventListener("click", () => {
+    cell.classList.toggle("on");
+    playNote(stringIndex, fret);
+  });
   return cell;
+}
+
+function renderInlays() {
+  const inlaysLayer = document.getElementById("inlays");
+  if (!inlaysLayer) return;
+  inlaysLayer.innerHTML = "";
+
+  const inlayTrastes = [3, 5, 7, 9, 12, 15, 17, 19];
+
+  for (let f = 1; f <= 20; f++) {
+    const pos = document.createElement("div");
+    pos.className = "inlay-pos";
+    if (inlayTrastes.includes(f)) {
+      if (f === 12) {
+        pos.classList.add("double");
+        pos.innerHTML = '<div class="inlay-dot"></div><div class="inlay-dot"></div>';
+      } else {
+        pos.innerHTML = '<div class="inlay-dot"></div>';
+      }
+    }
+    inlaysLayer.appendChild(pos);
+  }
 }
 
 function renderMarkers() {
   const markersContainer = document.getElementById("markers");
   if (!markersContainer) return;
   markersContainer.innerHTML = "";
-  markersContainer.appendChild(makeDiv("marker", ""));
-  markersContainer.appendChild(makeDiv("marker", ""));
-  frets.forEach(f => {
-    const m = document.createElement("div");
-    m.className = "marker";
-    if ([3, 5, 7, 9, 15, 17, 19].includes(f)) {
-      m.appendChild(dotMarker());
-    } else if (f === 12) {
-      m.classList.add("double");
-      m.appendChild(doubleMarker());
-    }
-    markersContainer.appendChild(m);
-  });
+  // Se eliminan los números del traste de la parte inferior a pedido del usuario.
 }
 
 function refreshNoteLabels() {
@@ -380,16 +403,34 @@ function startMetro() {
   const bpm = document.getElementById("bpmInput").value;
   const ms = 60000 / bpm;
   currentBeat = 0;
-  if (document.getElementById("metroSound").checked) runClickLogic();
-  metroInterval = setInterval(() => {
-    if (document.getElementById("metroSound").checked) runClickLogic();
-  }, ms);
+
+  runClickLogic(); // Primer beat inmediato
+  metroInterval = setInterval(runClickLogic, ms);
+
   metroRunning = true;
   document.getElementById("metroToggle").textContent = "⏸ Metrónomo";
 }
 
 function runClickLogic() {
-  playClick(currentBeat === 0);
+  const isAccent = (currentBeat === 0);
+
+  // Feedback Visual (LED)
+  const led = document.getElementById("metroVisual");
+  if (led) {
+    led.classList.remove("flash", "accent");
+    void led.offsetWidth; // Reflow
+    led.classList.add("flash");
+    if (isAccent) led.classList.add("accent");
+
+    // El fade out ocurre por CSS transition, pero quitamos las clases pronto
+    setTimeout(() => led.classList.remove("flash", "accent"), 150);
+  }
+
+  // Audio (condicional)
+  if (document.getElementById("metroSound").checked) {
+    playClick(isAccent);
+  }
+
   currentBeat = (currentBeat + 1) % 4;
 }
 
@@ -482,21 +523,46 @@ function runPracticeTick() {
 }
 
 function playNote(stringIndex, fret) {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+
   // 0:E grave, 1:A, 2:D, 3:G, 4:B, 5:e agudo
   const STRING_OFFSETS = { 0: 0, 1: 5, 2: 10, 3: 15, 4: 19, 5: 24 };
   const semitones = STRING_OFFSETS[stringIndex] + fret;
   const freq = 82.41 * Math.pow(2, semitones / 12);
+
+  // Feedback Visual: Pulso
+  const cell = document.querySelector(`.cell[data-string-index="${stringIndex}"][data-fret="${fret}"]`);
+  if (cell) {
+    cell.classList.remove("playing");
+    void cell.offsetWidth; // Trigger reflow
+    cell.classList.add("playing");
+    setTimeout(() => cell.classList.remove("playing"), 400);
+  }
+
+  // Audio Engine: Sintetizador con Envolvente (ADSR) y Filtro
   const osc = audioCtx.createOscillator();
   const gainNode = audioCtx.createGain();
-  osc.connect(gainNode);
-  gainNode.connect(audioCtx.destination);
+  const filter = audioCtx.createBiquadFilter();
+
   osc.type = "triangle";
   osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-  gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-  gainNode.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + 0.05);
-  gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-  osc.start(audioCtx.currentTime);
-  osc.stop(audioCtx.currentTime + 0.6);
+
+  filter.type = "lowpass";
+  filter.frequency.setValueAtTime(2000, audioCtx.currentTime); // Suaviza el timbre
+
+  const now = audioCtx.currentTime;
+  gainNode.gain.setValueAtTime(0, now);
+  gainNode.gain.linearRampToValueAtTime(0.5, now + 0.02);      // Attack
+  gainNode.gain.exponentialRampToValueAtTime(0.2, now + 0.15); // Decay
+  gainNode.gain.exponentialRampToValueAtTime(0.001, now + 1.5);// Release (Fade out largo)
+
+  osc.connect(filter);
+  filter.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+
+  osc.start(now);
+  osc.stop(now + 1.6);
 }
 
 renderBoard();

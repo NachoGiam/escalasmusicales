@@ -16,11 +16,13 @@
 
     <!-- Área del Diapasón -->
     <div class="board">
-      <div class="board-row">
-        <div class="scrollArea">
+      <div class="scrollArea">
+        <div class="fretboard-container">
           <div id="grid" class="grid" aria-label="Fretboard"></div>
-          <div id="markers" class="markers" aria-label="Marcadores de traste"></div>
+          <div id="inlays" class="inlays-layer"></div>
+          <div id="strings" class="strings-layer"></div>
         </div>
+        <div id="markers" class="markers" aria-label="Marcadores de traste"></div>
       </div>
     </div>
     <!-- Barra de herramientas con selectores y controles -->
@@ -44,6 +46,7 @@
       </select>
       <span class="spacer"></span>
       <!-- METRÓNOMO -->
+      <div id="metroVisual" class="metro-led" title="Indicador visual de pulso"></div>
       <button id="metroToggle">▶️ Metrónomo</button>
       <label class="hint">BPM</label>
       <input id="bpmInput" type="number" min="40" max="240" value="80" style="width:70px">

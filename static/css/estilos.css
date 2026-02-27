@@ -1,321 +1,404 @@
-     /* Variables globales de estilo */
-     :root {
-       --cell: 38px;
-       --gap: 6px;
-       --stringCol: 26px;
-       --bg: #0f172a;
-       --panel: #111827;
-       --line: rgba(255, 255, 255, .10);
-       --text: rgba(255, 255, 255, .9);
-       --muted: rgba(255, 255, 255, .65);
+:root {
+  --cell-w: 50px;
+  --cell-h: 40px;
+  --gap: 0px;
+  --wood-bg: #2b1d16;
+  --wood-texture: linear-gradient(90deg, #2b1d16 0%, #3a261c 50%, #2b1d16 100%);
+  --fret-color: #b0b0b0;
+  --nut-color: #f3e5ab;
+  --string-color: linear-gradient(180deg, #888 0%, #ddd 50%, #888 100%);
+  --string-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  --text: #ffffff;
+  --muted: rgba(255, 255, 255, 0.6);
+  --root-color: #ff9800;
+  /* Naranja vibrante para tónica */
+  --scale-color: #4a9eff;
+  /* Azul brillante para escala */
+  --active-practice: #ec4899;
+}
 
-     }
+* {
+  box-sizing: border-box;
+}
 
-     * {
-       box-sizing: border-box;
-     }
+body {
+  margin: 0;
+  padding: 40px 20px;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: #121212;
+  color: var(--text);
+  line-height: 1.5;
+}
 
-     /* Reset y estilos base del cuerpo */
-     body {
-       margin: 0;
-       padding: 24px;
-       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
-       background: radial-gradient(1200px 600px at 20% 0%, #1f2937 0%, var(--bg) 60%);
-       color: var(--text);
-     }
+.wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+}
 
-     .wrap {
-       max-width: 1100px;
-       margin: 0 auto;
-     }
+h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(to right, #fff, #888);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
 
-     h1 {
-       margin: 0 0 8px;
-       font-size: 20px;
-     }
+p {
+  color: var(--muted);
+  margin-bottom: 2rem;
+}
 
-     p {
-       margin: 0 0 16px;
-       color: var(--muted);
-     }
+/* Fretboard Container */
+.board {
+  background: #1a1a1a;
+  padding: 40px 20px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  margin-bottom: 2rem;
+}
 
-     /* Contenedor principal del diapasón */
-     .board {
-       background: rgba(17, 24, 39, .7);
-       border: 1px solid var(--line);
-       border-radius: 16px;
-       padding: 16px;
-       overflow-x: auto;
-     }
+.scrollArea {
+  overflow-x: auto;
+  padding-bottom: 20px;
+  scrollbar-width: thin;
+  scrollbar-color: #444 #1a1a1a;
+}
 
-     /* La grilla: 1 col para etiquetas + 13 cols (0..12) */
-     /* 0 (celda) | cuerda (label) | 1..12 */
-     /* Grilla que define trastes y cuerdas */
-     .grid {
-       display: grid;
-       grid-template-columns: var(--cell) var(--stringCol) repeat(20, var(--cell));
-       gap: var(--gap);
-       align-items: center;
-       min-width: calc(var(--cell) + var(--stringCol) + 20 * var(--cell) + 21 * var(--gap));
-     }
+.fretboard-container {
+  position: relative;
+  width: fit-content;
+  background: var(--wood-bg);
+  background-image: var(--wood-texture);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5);
+}
 
+.grid {
+  display: grid;
+  /* Col 1: Label, Col 2: Nut/Open, Cols 3-22: Frets 1-20 */
+  grid-template-columns: 40px var(--cell-w) repeat(20, var(--cell-w));
+  position: relative;
+  z-index: 10;
+}
 
+/* Labels */
+.fret-label {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+  background: #1a1a1a;
+  /* Outside the wood */
+}
 
+.string-label {
+  width: 40px;
+  height: var(--cell-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--muted);
+  background: #1a1a1a;
+}
 
-     .fret-label {
-       text-align: center;
-       font-size: 12px;
-       color: var(--muted);
-       user-select: none;
-       padding: 6px 0;
-     }
+/* Cells & Frets */
+.cell {
+  width: var(--cell-w);
+  height: var(--cell-h);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-right: 2px solid var(--fret-color);
+  background: transparent;
+}
 
-     .string-label {
-       text-align: center;
-       padding-right: 0;
-       width: var(--stringCol);
-       /* opcional pero ayuda */
-       color: rgba(255, 255, 255, .65);
-       font-weight: 600;
-       user-select: none;
-     }
+/* Nut (Traste 0) */
+.cell.open {
+  border-right: 6px solid var(--nut-color);
+  background: rgba(0, 0, 0, 0.2);
+}
 
+/* Remove last fret border */
+.cell:last-child {
+  border-right: none;
+}
 
-     /* Celda individual (intersección cuerda/traste) */
-     .cell {
-       width: var(--cell);
-       height: var(--cell);
-       border-radius: 12px;
-       border: 1px solid var(--line);
-       background: rgba(255, 255, 255, .03);
-       display: grid;
-       place-items: center;
-       cursor: pointer;
-       user-select: none;
-       transition: transform .06s ease, background .15s ease, border-color .15s ease;
-       position: relative;
-     }
+/* Strings Layer */
+.strings-layer {
+  position: absolute;
+  top: 30px;
+  /* Offset for fret labels */
+  left: 40px;
+  /* Offset for string labels */
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+}
 
-     .cell:hover {
-       transform: translateY(-1px);
-       background: rgba(255, 255, 255, .06);
-     }
+.string-line {
+  height: var(--cell-h);
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
 
-     .cell:active {
-       transform: translateY(0px) scale(.98);
-     }
+.string-line::after {
+  content: '';
+  width: 100%;
+  background: var(--string-color);
+  box-shadow: var(--string-shadow);
+  position: absolute;
+  z-index: 5;
+}
 
-     /* Marcas MANUALES (click) */
-     .cell.on {
-       background: rgba(34, 197, 94, .18);
-       border-color: rgba(34, 197, 94, .55);
-     }
+/* Thickness for each string (graduación de grosor) */
+/* Cuerda 1 (e aguda) */
+.string-line[data-string="5"]::after {
+  height: 1.2px;
+}
 
-     /* Marcas por ESCALA (auto) */
-     .cell.scale {
-       background: rgba(59, 130, 246, .16);
-       border-color: rgba(59, 130, 246, .55);
-     }
+/* Cuerda 2 (B) */
+.string-line[data-string="4"]::after {
+  height: 1.8px;
+}
 
-     /* TÓNICA (auto) */
-     .cell.root {
-       background: rgba(245, 158, 11, .18);
-       border-color: rgba(245, 158, 11, .70);
-       box-shadow: 0 0 0 2px rgba(245, 158, 11, .20) inset;
-     }
+/* Cuerda 3 (G) */
+.string-line[data-string="3"]::after {
+  height: 2.4px;
+}
 
-     /* PRÁCTICA (highlight) */
-     .cell.active-practice {
-       background: rgba(236, 72, 153, 0.4) !important;
-       /* Rosa fuerte */
-       border-color: rgba(236, 72, 153, 1) !important;
-       box-shadow: 0 0 15px rgba(236, 72, 153, 0.5);
-       transform: scale(1.1);
-       z-index: 10;
-     }
+/* Cuerda 4 (D) */
+.string-line[data-string="2"]::after {
+  height: 3.0px;
+}
 
-     .cell.active-practice .note {
-       color: #fff !important;
-       font-weight: 800;
-       font-size: 14px;
-     }
+/* Cuerda 5 (A) */
+.string-line[data-string="1"]::after {
+  height: 3.6px;
+}
 
-     /* Puntito (para manual) */
-     .dot {
-       width: 12px;
-       height: 12px;
-       border-radius: 999px;
-       background: rgba(255, 255, 255, .30);
-       opacity: .0;
-     }
+/* Cuerda 6 (E grave) */
+.string-line[data-string="0"]::after {
+  height: 4.5px;
+}
 
-     .cell.on .dot {
-       opacity: 1;
-       background: rgba(34, 197, 94, .9);
-     }
+/* Inlays Layer - Detrás de las notas pero sobre la madera */
+.inlays-layer {
+  position: absolute;
+  top: 30px;
+  left: 90px;
+  /* Offset labels + nut */
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  display: grid;
+  grid-template-columns: repeat(20, var(--cell-w));
+  z-index: 1;
+  /* Bajo la grilla (z-index 10) */
+}
 
-     .note {
-       font-size: 12px;
-       letter-spacing: .2px;
-       color: rgba(255, 255, 255, .28);
-       /* suave */
-       user-select: none;
-       pointer-events: none;
-       line-height: 1;
-     }
+.inlay-pos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  grid-row: 1 / span 6;
+}
 
-     /* cuando está resaltado, la nota se lee mejor */
-     .cell.scale .note {
-       color: rgba(255, 255, 255, .78);
-     }
+.inlay-dot {
+  width: 14px;
+  height: 14px;
+  background: #e1d8c1;
+  /* Color Marfil/Perla */
+  border-radius: 50%;
+  opacity: 0.6;
+  /* Sutil pero visible */
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(255, 255, 255, 0.1);
+}
 
-     .cell.root .note {
-       color: rgba(255, 255, 255, .92);
-       font-weight: 700;
-     }
+.inlay-pos.double {
+  flex-direction: column;
+  gap: 40px;
+}
 
-     .cell.on .note {
-       color: rgba(255, 255, 255, .88);
-       font-weight: 600;
-     }
+/* Notes Styles - Visible en tono suave por defecto */
+.note {
+  position: absolute;
+  z-index: 20;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.2);
+  /* Tono suave por defecto */
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
 
-     /* si una celda está oculta por zona (si usás zonas), que la nota sea casi invisible */
-     .cell.hidden .note {
-       color: rgba(255, 255, 255, .08);
-     }
+.cell:hover .note {
+  border-color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.1);
+}
 
+/* Active Scale - Con Brillo (Glow) */
+.cell.scale .note {
+  background: var(--scale-color);
+  color: #fff;
+  border: none;
+  box-shadow: 0 0 12px rgba(74, 158, 255, 0.6), 0 4px 10px rgba(0, 0, 0, 0.3), inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+}
 
-     /* Frets markers (3,5,7,9,12) abajo */
-     /* Marcadores de traste (puntos guía 3, 5, 7, 9, 12) */
-     .markers {
-       margin-top: 10px;
-       display: grid;
-       grid-template-columns: var(--cell) var(--stringCol) repeat(20, var(--cell));
-       gap: var(--gap);
-       align-items: center;
-       min-width: calc(var(--cell) + var(--stringCol) + 20 * var(--cell) + 21 * var(--gap));
-     }
+/* Root Note - Con Brillo (Glow) Extra */
+.cell.root .note {
+  background: var(--root-color);
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 20px rgba(255, 152, 0, 0.7), 0 4px 15px rgba(0, 0, 0, 0.4), inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+  transform: scale(1.15);
+}
 
+/* Nota marcada manualmente (Prioridad máxima) */
+.cell.on .note {
+  background: #22c55e !important;
+  /* Verde brillante */
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 0 0 15px rgba(34, 197, 94, 0.6), inset 0 -2px 0 rgba(0, 0, 0, 0.2) !important;
+  transform: scale(1.1) !important;
+}
 
+/* Practice Mode */
+.cell.active-practice .note {
+  background: var(--active-practice) !important;
+  transform: scale(1.3);
+  box-shadow: 0 0 20px var(--active-practice);
+  z-index: 30;
+}
 
-     .marker {
-       height: 16px;
-       display: grid;
-       place-items: center;
-       color: rgba(255, 255, 255, .25);
-       user-select: none;
-     }
+/* Animación de Pulso para Feedback de Audio */
+.cell.playing .note {
+  animation: pulse-note 0.4s ease-out;
+  border-color: rgba(255, 255, 255, 0.8) !important;
+}
 
-     .marker .m {
-       width: 10px;
-       height: 10px;
-       border-radius: 999px;
-       background: #000000 !important;
-       /* Estrategia inversa: Negro para que la extensión lo haga blanco */
-       opacity: 1 !important;
-     }
+@keyframes pulse-note {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0px rgba(255, 255, 255, 0);
+  }
 
-     .marker.double .m {
-       width: 10px;
-       height: 10px;
-       box-shadow: -8px 0 0 #000000, 8px 0 0 #000000 !important;
-       background: transparent !important;
-     }
+  20% {
+    transform: scale(1.4);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+  }
 
-     /* Barra de herramientas (botones y selectores) */
-     .toolbar {
-       display: flex;
-       gap: 10px;
-       align-items: center;
-       margin: 14px 0 0;
-       flex-wrap: wrap;
-     }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0px rgba(255, 255, 255, 0);
+  }
+}
 
-     button,
-     select {
-       background: rgba(255, 255, 255, .06);
-       border: 1px solid var(--line);
-       color: var(--text);
-       padding: 8px 10px;
-       border-radius: 12px;
-       cursor: pointer;
-     }
+/* Metronom Visual Indicator */
+.metro-led {
+  width: 14px;
+  height: 14px;
+  background: #333;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background 0.1s ease, box-shadow 0.1s ease, transform 0.1s ease;
+}
 
-     button:hover,
-     select:hover {
-       background: rgba(255, 255, 255, .10);
-     }
+.metro-led.flash {
+  background: #22c55e;
+  /* Verde para tiempos normales */
+  box-shadow: 0 0 15px #22c55e;
+  transform: scale(1.2);
+}
 
-     button.active {
-       border-color: rgba(255, 255, 255, .55);
-       box-shadow: 0 0 0 2px rgba(255, 255, 255, .10) inset;
-       background: rgba(255, 255, 255, .12);
-     }
+.metro-led.flash.accent {
+  background: #ef4444;
+  /* Rojo para el tiempo 1 */
+  box-shadow: 0 0 15px #ef4444;
+  transform: scale(1.4);
+}
 
-     .hint {
-       color: var(--muted);
-       font-size: 12px;
-     }
+/* ToolBar & Controls */
+.toolbar {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  background: #1a1a1a;
+  padding: 20px;
+  border-radius: 15px;
+  flex-wrap: wrap;
+}
 
-     .spacer {
-       flex: 1;
-     }
+.toolbar label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+}
 
-     /* Fix: opciones del select visibles en tema oscuro */
-     select,
-     option {
-       color: rgba(255, 255, 255, .92);
-       background-color: #111827;
-     }
+select,
+button,
+input {
+  background: #2a2a2a;
+  border: 1px solid #333;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: background 0.2s;
+}
 
-     select:focus {
-       outline: none;
-     }
+button:hover,
+select:hover {
+  background: #3a3a3a;
+}
 
-     .board-row {
-       display: flex;
-       gap: var(--gap);
-       align-items: flex-start;
-     }
+button#clearBtn {
+  background: #442222;
+  border-color: #663333;
+}
 
-     .scrollArea {
-       overflow-x: auto;
-       padding-bottom: 2px;
-     }
+button#clearBtn:hover {
+  background: #662222;
+}
 
-     /* Columna fija de cuerdas al aire */
-     .openGrid {
-       display: grid;
-       grid-template-columns: 70px var(--cell);
-       /* label + celda 0 */
-       gap: var(--gap);
-       align-items: center;
-     }
+/* Fret markers at the bottom */
+.markers {
+  display: grid;
+  grid-template-columns: 40px var(--cell-w) repeat(20, var(--cell-w));
+  margin-top: 10px;
+}
 
-     /* estilo distinto para el traste 0 */
-     .cell.open {
-       background: rgba(255, 255, 255, .06);
-       border-color: rgba(255, 255, 255, .20);
-     }
+.marker {
+  display: flex;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
 
-     .cell.open .note {
-       color: rgba(255, 255, 255, .85);
-       font-weight: 600;
-     }
-
-     .fret-label.open {
-       color: rgba(255, 255, 255, .45);
-     }
-
-     /* ✅ Si el traste 0 (open) también está en la escala, que se vea azul */
-     .cell.open.scale {
-       background: rgba(59, 130, 246, .16);
-       border-color: rgba(59, 130, 246, .55);
-     }
-
-     /* ✅ Si el traste 0 (open) es tónica, que se vea dorado */
-     .cell.open.root {
-       background: rgba(245, 158, 11, .18);
-       border-color: rgba(245, 158, 11, .70);
-       box-shadow: 0 0 0 2px rgba(245, 158, 11, .20) inset;
-     }
+.spacer {
+  flex: 1;
+}
