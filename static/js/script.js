@@ -17,7 +17,8 @@ const NOTE_TO_PC = {
 // 12 Tonalidades
 const NOTE_NAMES = ["C", "G", "D", "A", "E", "B", "Gb", "Db", "Ab", "Eb", "Bb", "F"];
 
-const OPEN_STRING_PC = [4, 9, 2, 7, 11, 4];
+// Afinación Estándar (Pitch Class de cuerdas al aire)
+const OPEN_STRING_PC = [4, 9, 2, 7, 11, 4]; // Indices: 0=E grave, 1=A, 2=D, 3=G, 4=B, 5=e aguda
 
 // Tonalidades que siempre usan bemoles
 const FLAT_KEYS = new Set([
@@ -25,22 +26,145 @@ const FLAT_KEYS = new Set([
   "Dm", "Gm", "Cm", "Fm", "Bbm", "Ebm"
 ]);
 
-// Mapeos específicos para evitar repetir letras 
-const KEY_NAME_MAPS = {
-  "F#": ["F#", "G#", "A#", "B", "C#", "D#", "E#"],
-  "Gb": ["Gb", "Ab", "Bb", "Cb", "Db", "Eb", "F"],
-  "B": ["B", "C#", "D#", "E", "F#", "G#", "A#"],
-  "Db": ["Db", "Eb", "F", "Gb", "Ab", "Bb", "C"],
-  "Ab": ["Ab", "Bb", "C", "Db", "Eb", "F", "G"],
-  "Eb": ["Eb", "F", "G", "Ab", "Bb", "C", "D"],
-  "Bb": ["Bb", "C", "D", "Eb", "F", "G", "A"],
-  "F": ["F", "G", "A", "Bb", "C", "D", "E"]
+// Intervalos que definen cada escala/modo (distancia en semitonos desde la tónica)
+const SCALES_CONFIG = {
+  "major": new Set([0, 2, 4, 5, 7, 9, 11]),
+  "dorian": new Set([0, 2, 3, 5, 7, 9, 10]),
+  "phrygian": new Set([0, 1, 3, 5, 7, 8, 10]),
+  "lydian": new Set([0, 2, 4, 6, 7, 9, 11]),
+  "mixolydian": new Set([0, 2, 4, 5, 7, 9, 10]),
+  "minor": new Set([0, 2, 3, 5, 7, 8, 10]),
+  "locrian": new Set([0, 1, 3, 5, 6, 8, 10])
 };
+
+// Offset para encontrar la tónica de la escala Mayor Relativa (en semitonos)
+const RELATIVE_MAJOR_OFFSET = {
+  "major": 0,
+  "dorian": 10,
+  "phrygian": 8,
+  "lydian": 7,
+  "mixolydian": 5,
+  "minor": 3,
+  "locrian": 1
+};
+
+// Diccionario de Nombres Correctos (Spelling)
+const SCALE_SPELLINGS = {
+  "C:major": { 0: "C", 2: "D", 4: "E", 5: "F", 7: "G", 9: "A", 11: "B" },
+  "G:major": { 7: "G", 9: "A", 11: "B", 0: "C", 2: "D", 4: "E", 6: "F#" },
+  "D:major": { 2: "D", 4: "E", 6: "F#", 7: "G", 9: "A", 11: "B", 1: "C#" },
+  "A:major": { 9: "A", 11: "B", 1: "C#", 2: "D", 4: "E", 6: "F#", 8: "G#" },
+  "E:major": { 4: "E", 6: "F#", 8: "G#", 9: "A", 11: "B", 1: "C#", 3: "D#" },
+  "B:major": { 11: "B", 1: "C#", 3: "D#", 4: "E", 6: "F#", 8: "G#", 10: "A#" },
+  "F#:major": { 6: "F#", 8: "G#", 10: "A#", 11: "B", 1: "C#", 3: "D#", 5: "E#" },
+  "Gb:major": { 6: "Gb", 8: "Ab", 10: "Bb", 11: "Cb", 1: "Db", 3: "Eb", 5: "F" },
+  "Db:major": { 1: "Db", 3: "Eb", 5: "F", 6: "Gb", 8: "Ab", 10: "Bb", 0: "C" },
+  "Ab:major": { 8: "Ab", 10: "Bb", 0: "C", 1: "Db", 3: "Eb", 5: "F", 7: "G" },
+  "Eb:major": { 3: "Eb", 5: "F", 7: "G", 8: "Ab", 10: "Bb", 0: "C", 2: "D" },
+  "Bb:major": { 10: "Bb", 0: "C", 2: "D", 3: "Eb", 5: "F", 7: "G", 9: "A" },
+  "F:major": { 5: "F", 7: "G", 9: "A", 10: "Bb", 0: "C", 2: "D", 4: "E" },
+  "A:minor": { 9: "A", 11: "B", 0: "C", 2: "D", 4: "E", 5: "F", 7: "G" },
+  "E:minor": { 4: "E", 6: "F#", 7: "G", 9: "A", 11: "B", 0: "C", 2: "D" },
+  "B:minor": { 11: "B", 1: "C#", 2: "D", 4: "E", 6: "F#", 7: "G", 9: "A" },
+  "F#:minor": { 6: "F#", 8: "G#", 9: "A", 11: "B", 1: "C#", 2: "D", 4: "E" },
+  "C#:minor": { 1: "C#", 3: "D#", 4: "E", 6: "F#", 8: "G#", 9: "A", 11: "B" },
+  "G#:minor": { 8: "G#", 10: "A#", 11: "B", 1: "C#", 3: "D#", 4: "E", 6: "F#" },
+  "Eb:minor": { 3: "Eb", 5: "F", 6: "Gb", 8: "Ab", 10: "Bb", 11: "Cb", 1: "Db" },
+  "Bb:minor": { 10: "Bb", 0: "C", 1: "Db", 3: "Eb", 5: "F", 6: "Gb", 8: "Ab" },
+  "F:minor": { 5: "F", 7: "G", 8: "Ab", 10: "Bb", 0: "C", 1: "Db", 3: "Eb" },
+  "C:minor": { 0: "C", 2: "D", 3: "Eb", 5: "F", 7: "G", 8: "Ab", 10: "Bb" },
+  "G:minor": { 7: "G", 9: "A", 10: "Bb", 0: "C", 2: "D", 3: "Eb", 5: "F" },
+  "D:minor": { 2: "D", 4: "E", 5: "F", 7: "G", 9: "A", 10: "Bb", 0: "C" }
+};
+
+const MODE_OFFSETS_FROM_MAJOR = {
+  "dorian": 2,      // 2nd degree
+  "phrygian": 4,    // 3rd degree
+  "lydian": 5,      // 4th degree
+  "mixolydian": 7,  // 5th degree
+  "minor": 9,       // 6th degree
+  "locrian": 11     // 7th degree
+};
+
+// Auto-generar spellings para los modos
+Object.keys(SCALE_SPELLINGS).forEach(key => {
+  const [root, type] = key.split(':');
+  if (type === "major") {
+    const rootPc = NOTE_TO_PC[root];
+    const spellingDict = SCALE_SPELLINGS[key];
+    Object.keys(MODE_OFFSETS_FROM_MAJOR).forEach(modeName => {
+      const semitones = MODE_OFFSETS_FROM_MAJOR[modeName];
+      const modeRootPc = (rootPc + semitones) % 12;
+      const modeRootName = spellingDict[modeRootPc];
+      if (modeRootName) {
+        SCALE_SPELLINGS[`${modeRootName}:${modeName}`] = spellingDict;
+      }
+    });
+  }
+});
+
+// --- Dibujos / Patrones Geométricos ---
+const SHAPES_CONFIG = {
+  "s1": {
+    "name": "Dibujo 1",
+    "ref_string": 0,
+    "start_offset": 1,
+    "patterns": {
+      0: [0, 1, 3], 1: [0, 1, 3], 2: [0, 2, 3],
+      3: [0, 2, 3], 4: [0, 1, 3], 5: [0, 1, 3]
+    }
+  },
+  "s2": {
+    "name": "Dibujo 2",
+    "ref_string": 2,
+    "start_offset": 0,
+    "patterns": {
+      0: [0, 2, 3], 1: [0, 2], 2: [-1, 0, 2],
+      3: [-1, 0, 2], 4: [0, 2, 3], 5: [0, 2, 3]
+    }
+  },
+  "s3": {
+    "name": "Dibujo 3",
+    "ref_string": 1,
+    "start_offset": 3,
+    "patterns": {
+      0: [0, 1, 3], 1: [0, 2, 3], 2: [0, 2, 3],
+      3: [0, 2], 4: [0, 1, 3], 5: [0, 1, 3]
+    }
+  },
+  "s4": {
+    "name": "Dibujo 4",
+    "ref_string": 1,
+    "start_offset": 0,
+    "patterns": {
+      0: [0, 2], 1: [-1, 0, 2], 2: [-1, 0, 2],
+      3: [-1, 1, 2], 4: [0, 2, 3], 5: [0, 2]
+    }
+  },
+  "s5": {
+    "name": "Dibujo 5",
+    "ref_string": 0,
+    "start_offset": 0,
+    "patterns": {
+      0: [-3, -1, 0], 1: [-3, -1, 0], 2: [-3, -1],
+      3: [-4, -3, -1], 4: [-3, -2, 0], 5: [-3, -1, 0]
+    }
+  }
+};
+
+const SHAPES_SELECT = [
+  { id: "all", name: "Todos" },
+  { id: "s1", name: "Dibujo 1" },
+  { id: "s2", name: "Dibujo 2" },
+  { id: "s3", name: "Dibujo 3" },
+  { id: "s4", name: "Dibujo 4" },
+  { id: "s5", name: "Dibujo 5" }
+];
 
 // GLOBAL DATA
 let currentScaleNotes = new Set(); // Stores "stringIndex:fret"
 let currentRootNotes = new Set();  // Stores "stringIndex:fret" for roots
-let noteNamesMap = new Map(); // Mapa para traducir posiciones a nombres de notas específicos
+let noteNamesMap = new Map();
 
 // Referencias a elementos del DOM
 const grid = document.getElementById("grid");
@@ -48,120 +172,90 @@ const rootSelect = document.getElementById("rootSelect");
 const shapeSelect = document.getElementById("shapeSelect");
 const scaleSelect = document.getElementById("scaleSelect");
 
-// 2) Lógica de Nombres de Notas
-// Funciones auxiliares para decidir si usar sostenidos (#) o bemoles (b).
+// 2) Lógica Musical (Migrada de Backend)
 
-function shouldUseFlats(rootName, selectedScale) {
-  const keyName = selectedScale === "minor" ? rootName + "m" : rootName;
-  if (FLAT_KEYS.has(keyName) || rootName.includes("b")) return true;
-  return false;
-}
+function getScaleNotes(rootName, scaleType, drawingId = "all") {
+  if (!(rootName in NOTE_TO_PC)) return [];
 
-function pcToName(pc, rootName, selectedScale) {
-  // ESTA FUNCION YA NO SE DEBERÍA USAR SI TENEMOS DATOS DEL BACKEND
-  // PERO LA DEJAMOS COMO FALLBACK PARA CUANDO NO HAY ESCALA SELECCIONADA
-  if (KEY_NAME_MAPS[rootName]) {
-    const scaleNotes = KEY_NAME_MAPS[rootName];
-    for (let name of scaleNotes) {
-      if (NOTE_TO_PC[name] === pc) return name;
+  const scaleIntervals = SCALES_CONFIG[scaleType] || SCALES_CONFIG["major"];
+  const rootPc = NOTE_TO_PC[rootName];
+  const spellingMap = SCALE_SPELLINGS[`${rootName}:${scaleType}`];
+  const fallbackNames = PC_TO_SHARP;
+
+  // Caso: Filtrado por Dibujo Geométrico
+  if (drawingId !== "all" && SHAPES_CONFIG[drawingId]) {
+    const shape = SHAPES_CONFIG[drawingId];
+    const anchorPc = (rootPc + (RELATIVE_MAJOR_OFFSET[scaleType] || 0)) % 12;
+    const refString = shape.ref_string;
+    const openPc = OPEN_STRING_PC[refString];
+
+    let minRelFret = 0;
+    Object.values(shape.patterns).forEach(relFrets => {
+      if (relFrets.length) minRelFret = Math.min(minRelFret, Math.min(...relFrets));
+    });
+
+    let tonicFret = null;
+    for (let f = 0; f < 21; f++) {
+      if ((openPc + f) % 12 === anchorPc) {
+        if ((f - shape.start_offset + minRelFret) >= 0) {
+          tonicFret = f;
+          break;
+        }
+      }
+    }
+
+    if (tonicFret === null) return [];
+
+    const startFret = tonicFret - shape.start_offset;
+    const drawingPositions = [];
+
+    Object.entries(shape.patterns).forEach(([sIdxStr, relativeFrets]) => {
+      const sIdx = Number(sIdxStr);
+      relativeFrets.forEach(fOff => {
+        const targetFret = startFret + fOff;
+        if (targetFret >= 0 && targetFret <= 20) {
+          const currentPc = (OPEN_STRING_PC[sIdx] + targetFret) % 12;
+          const interval = (currentPc - rootPc + 12) % 12;
+          if (scaleIntervals.has(interval)) {
+            const noteName = (spellingMap && spellingMap[currentPc]) ? spellingMap[currentPc] : fallbackNames[currentPc];
+            drawingPositions.push({
+              string: sIdx,
+              fret: targetFret,
+              is_root: (currentPc === rootPc),
+              note_name: noteName
+            });
+          }
+        }
+      });
+    });
+    return drawingPositions;
+  }
+
+  // Caso: Todo el mástil
+  const validPositions = [];
+  for (let sIdx = 0; sIdx < 6; sIdx++) {
+    const openPc = OPEN_STRING_PC[sIdx];
+    for (let fret = 0; fret < 21; fret++) {
+      const currentPc = (openPc + fret) % 12;
+      const interval = (currentPc - rootPc + 12) % 12;
+      if (scaleIntervals.has(interval)) {
+        const noteName = (spellingMap && spellingMap[currentPc]) ? spellingMap[currentPc] : fallbackNames[currentPc];
+        validPositions.push({
+          string: sIdx,
+          fret: fret,
+          is_root: (currentPc === rootPc),
+          note_name: noteName
+        });
+      }
     }
   }
-  const preferFlats = shouldUseFlats(rootName, selectedScale);
+  return validPositions;
+}
+
+function pcToNameFallback(pc, rootName, selectedScale) {
+  const preferFlats = (FLAT_KEYS.has(selectedScale === "minor" ? rootName + "m" : rootName) || rootName.includes("b"));
   return preferFlats ? PC_TO_FLAT[pc] : PC_TO_SHARP[pc];
 }
-
-// 3) Shapes / Dibujos del Sistema CAGED
-// Lógica para filtrar escalas por patrones físicos en el diapasón.
-
-const SHAPES = [
-  {
-    id: "all",
-    name: "Todos",
-    type: "range",
-    from: 0,
-    to: 20
-  },
-  {
-    id: "s1",
-    name: "Dibujo 1",
-    type: "pattern",
-    rootString: 0, // C6
-    offsets: {
-      major: [
-        { s: 0, f: 0 }, { s: 0, f: 2 }, { s: 0, f: 4 }, // C6
-        { s: 1, f: 0 }, { s: 1, f: 2 }, { s: 1, f: 4 }, // C5
-        { s: 2, f: 1 }, { s: 2, f: 2 }, { s: 2, f: 4 }, // C4
-        { s: 3, f: 1 }, { s: 3, f: 2 }, { s: 3, f: 4 }, // C3
-        { s: 4, f: 0 }, { s: 4, f: 2 }, { s: 4, f: 4 }, // C2
-        { s: 5, f: 0 }, { s: 5, f: 2 }, { s: 5, f: 4 }  // C1
-      ]
-    }
-  },
-  {
-    id: "s2",
-    name: "Dibujo 2",
-    type: "pattern",
-    rootString: 2, // C4
-    offsets: {
-      major: [
-        { s: 2, f: 0 }, { s: 2, f: 2 }, { s: 2, f: 4 }, // C4
-        { s: 3, f: 0 }, { s: 3, f: 2 }, { s: 3, f: 4 }, // C3
-        { s: 4, f: 1 }, { s: 4, f: 2 }, { s: 4, f: 4 }, // C2
-        { s: 5, f: 0 }, { s: 5, f: 2 }, { s: 5, f: 4 }, // C1
-        { s: 0, f: 0 }, { s: 0, f: 2 }, { s: 0, f: 4 }, // C6
-        { s: 1, f: 0 }, { s: 1, f: 2 }, { s: 1, f: 4 }  // C5
-      ]
-    }
-  },
-  {
-    id: "s3",
-    name: "Dibujo 3",
-    type: "pattern",
-    rootString: 1, // C5
-    offsets: {
-      major: [
-        { s: 1, f: 0 }, { s: 1, f: 2 }, { s: 1, f: 3 }, // C5
-        { s: 2, f: 0 }, { s: 2, f: 2 }, { s: 2, f: 3 }, // C4
-        { s: 3, f: 0 }, { s: 3, f: 2 },                // C3
-        { s: 4, f: 0 }, { s: 4, f: 1 }, { s: 4, f: 3 }, // C2
-        { s: 5, f: 0 }, { s: 5, f: 2 }, { s: 5, f: 3 }, // C1
-        { s: 0, f: 0 }, { s: 0, f: 2 }, { s: 0, f: 3 }  // C6
-      ]
-    }
-  },
-  {
-    id: "s4",
-    name: "Dibujo 4",
-    type: "pattern",
-    rootString: 1, // C5
-    offsets: {
-      major: [
-        { s: 1, f: 0 }, { s: 1, f: 2 }, { s: 1, f: 4 }, // C5
-        { s: 2, f: 0 }, { s: 2, f: 2 }, { s: 2, f: 4 }, // C4
-        { s: 3, f: 0 }, { s: 3, f: 2 },                // C3
-        { s: 4, f: 0 }, { s: 4, f: 2 }, { s: 4, f: 3 }, // C2
-        { s: 5, f: 0 }, { s: 5, f: 2 }, { s: 5, f: 4 }, // C1
-        { s: 0, f: 0 }, { s: 0, f: 2 }, { s: 0, f: 4 }  // C6
-      ]
-    }
-  },
-  {
-    id: "s5",
-    name: "Dibujo 5",
-    type: "pattern",
-    rootString: 1, // C5
-    offsets: {
-      major: [
-        { s: 1, f: 0 }, { s: 1, f: 2 }, { s: 1, f: 4 }, // C5
-        { s: 2, f: 0 }, { s: 2, f: 2 }, { s: 2, f: 4 }, // C4
-        { s: 3, f: 1 }, { s: 3, f: 2 }, { s: 3, f: 4 }, // C3
-        { s: 4, f: 2 }, { s: 4, f: 3 }, { s: 4, f: 5 }, // C2
-        { s: 5, f: 2 }, { s: 5, f: 4 }, { s: 5, f: 5 }, // C1
-        { s: 0, f: 0 }, { s: 0, f: 2 }, { s: 0, f: 4 }  // C6
-      ]
-    }
-  }
-];
 
 let selectedScale = "";
 let selectedShapeId = "all";
@@ -173,75 +267,50 @@ NOTE_NAMES.forEach(n => {
   rootSelect.appendChild(opt);
 });
 
-SHAPES.forEach(s => {
+SHAPES_SELECT.forEach(s => {
   const opt = document.createElement("option");
   opt.value = s.id; opt.textContent = s.name;
   shapeSelect.appendChild(opt);
 });
 
-// La variable scaleSelect ya fue declarada en la sección de 'Datos Globales'.
+// 4) Aplicación de Escalas (Locales)
 
-// 4) Comunicación con el Backend
-// Obtiene los datos de las notas de la escala desde la API de Flask.
+function fetchScaleData(rootName, scaleType, drawingId = "all") {
+  // Ahora es sincrono y local
+  const positions = getScaleNotes(rootName, scaleType, drawingId);
 
-async function fetchScaleData(rootName, scaleType, drawingId = "all") {
-  const safeRoot = rootName.replace('#', 's');
-  const url = drawingId === "all"
-    ? `/api/escala/${safeRoot}/${scaleType}`
-    : `/api/escala/${safeRoot}/${scaleType}/dibujo/${drawingId}`;
+  currentScaleNotes.clear();
+  currentRootNotes.clear();
+  noteNamesMap.clear();
 
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("API Error");
-    const data = await res.json();
-
-    currentScaleNotes.clear();
-    currentRootNotes.clear();
-    noteNamesMap.clear();
-
-    data.positions.forEach(pos => {
-      const key = `${pos.string}:${pos.fret}`;
-      currentScaleNotes.add(key);
-      if (pos.is_root) currentRootNotes.add(key);
-      if (pos.note_name) noteNamesMap.set(key, pos.note_name);
-    });
-
-  } catch (err) {
-    console.error("Error fetching scale:", err);
-    currentScaleNotes.clear();
-    currentRootNotes.clear();
-    noteNamesMap.clear();
-  }
+  positions.forEach(pos => {
+    const key = `${pos.string}:${pos.fret}`;
+    currentScaleNotes.add(key);
+    if (pos.is_root) currentRootNotes.add(key);
+    if (pos.note_name) noteNamesMap.set(key, pos.note_name);
+  });
 }
 
 // 5) Renderizado del Diapasón y UI
-// Genera visualmente los trastes, cuerdas y marcadores de nota.
 
 function renderBoard() {
   grid.innerHTML = "";
 
-  // 1. Fila de etiquetas de trastes
-  grid.appendChild(makeDiv("fret-label", "")); // Esquina superior izquierda
-  grid.appendChild(makeDiv("fret-label", "0")); // Traste 0
+  grid.appendChild(makeDiv("fret-label", ""));
+  grid.appendChild(makeDiv("fret-label", "0"));
   frets.forEach(f => grid.appendChild(makeDiv("fret-label", f)));
 
-  const STRING_ORDER = [5, 4, 3, 2, 1, 0]; // De e aguda a E grave
-
-  // 2. Generar Capa de Cuerdas y Celdas
+  const STRING_ORDER = [5, 4, 3, 2, 1, 0];
   const stringsLayer = document.getElementById("strings");
   stringsLayer.innerHTML = "";
 
   STRING_ORDER.forEach((stringIndex) => {
-    // Agregar etiqueta de cuerda a la grilla
     grid.appendChild(makeDiv("string-label", strings[stringIndex]));
-
-    // Agregar celdas (traste 0 + trastes 1-20)
     grid.appendChild(createCell(stringIndex, 0, true));
     frets.forEach(fret => {
       grid.appendChild(createCell(stringIndex, fret, false));
     });
 
-    // Agregar línea de cuerda a la capa de cuerdas
     const sLine = document.createElement("div");
     sLine.className = "string-line";
     sLine.dataset.string = stringIndex;
@@ -272,9 +341,7 @@ function renderInlays() {
   const inlaysLayer = document.getElementById("inlays");
   if (!inlaysLayer) return;
   inlaysLayer.innerHTML = "";
-
   const inlayTrastes = [3, 5, 7, 9, 12, 15, 17, 19];
-
   for (let f = 1; f <= 20; f++) {
     const pos = document.createElement("div");
     pos.className = "inlay-pos";
@@ -294,7 +361,6 @@ function renderMarkers() {
   const markersContainer = document.getElementById("markers");
   if (!markersContainer) return;
   markersContainer.innerHTML = "";
-  // Se eliminan los números del traste de la parte inferior a pedido del usuario.
 }
 
 function refreshNoteLabels() {
@@ -305,13 +371,14 @@ function refreshNoteLabels() {
     const fret = Number(cell.dataset.fret);
     const pc = (OPEN_STRING_PC[stringIndex] + fret) % 12;
     const noteEl = cell.querySelector(".note");
-    if (noteEl) noteEl.textContent = pcToName(pc, rootName, scale);
+    // Fallback simple si no hay escala
+    if (noteEl) noteEl.textContent = pcToNameFallback(pc, rootName, scale);
   });
 }
 
-async function updateAndApply() {
+function updateAndApply() {
   if (selectedScale) {
-    await fetchScaleData(rootSelect.value, selectedScale, selectedShapeId);
+    fetchScaleData(rootSelect.value, selectedScale, selectedShapeId);
   } else {
     currentScaleNotes.clear();
     currentRootNotes.clear();
@@ -323,7 +390,6 @@ function applyScaleHighlight() {
   document.querySelectorAll(".cell.scale, .cell.root").forEach(el => el.classList.remove("scale", "root"));
   if (!selectedScale) return;
 
-  // Renderizar lo que el backend devolvió (ya filtrado por dibujo si aplica)
   currentScaleNotes.forEach(key => {
     const [sStr, fStr] = key.split(":");
     const sIdx = Number(sStr);
@@ -342,8 +408,7 @@ function applyScaleHighlight() {
   });
 }
 
-// 6) Manejo de Eventos (Interacción del Usuario)
-// Detecta cambios en los selectores y clics en los botones.
+// 6) Manejo de Eventos
 
 rootSelect.addEventListener("change", () => { refreshNoteLabels(); updateAndApply(); });
 shapeSelect.addEventListener("change", () => { selectedShapeId = shapeSelect.value; updateAndApply(); });
@@ -360,27 +425,23 @@ document.getElementById("clearBtn").addEventListener("click", () => {
   currentScaleNotes.clear();
   currentRootNotes.clear();
   noteNamesMap.clear();
-  refreshNoteLabels(); // Reset to default names when cleared
+  refreshNoteLabels();
   updateUIButtons();
 });
 
 function updateUI() {
   updateUIButtons();
-  refreshNoteLabels(); // Set defaults first
-  updateAndApply();    // Then fetch and overwrite logic (async)
+  refreshNoteLabels();
+  updateAndApply();
 }
 
 function updateUIButtons() {
   scaleSelect.value = selectedScale;
 }
 
-// Helpers
 function makeDiv(cls, text) { const d = document.createElement("div"); d.className = cls; d.textContent = text; return d; }
-function dotMarker() { const d = document.createElement("div"); d.className = "m"; return d; }
-function doubleMarker() { const d = document.createElement("div"); d.className = "m"; return d; }
 
 // 7) Herramientas: Metrónomo y Modo Práctica
-// Lógica de sonido (AudioContext) y secuenciador de notas.
 
 let audioCtx;
 let metroInterval;
@@ -403,34 +464,25 @@ function startMetro() {
   const bpm = document.getElementById("bpmInput").value;
   const ms = 60000 / bpm;
   currentBeat = 0;
-
-  runClickLogic(); // Primer beat inmediato
+  runClickLogic();
   metroInterval = setInterval(runClickLogic, ms);
-
   metroRunning = true;
   document.getElementById("metroToggle").textContent = "⏸ Metrónomo";
 }
 
 function runClickLogic() {
   const isAccent = (currentBeat === 0);
-
-  // Feedback Visual (LED)
   const led = document.getElementById("metroVisual");
   if (led) {
     led.classList.remove("flash", "accent");
-    void led.offsetWidth; // Reflow
+    void led.offsetWidth;
     led.classList.add("flash");
     if (isAccent) led.classList.add("accent");
-
-    // El fade out ocurre por CSS transition, pero quitamos las clases pronto
     setTimeout(() => led.classList.remove("flash", "accent"), 150);
   }
-
-  // Audio (condicional)
   if (document.getElementById("metroSound").checked) {
     playClick(isAccent);
   }
-
   currentBeat = (currentBeat + 1) % 4;
 }
 
@@ -480,28 +532,19 @@ function startPractice() {
     alert("Primero selecciona una escala y tónica.");
     return;
   }
-  // Unificamos offsets: 0 es la cuerda más grave (E), 5 la más aguda (e)
   const STRING_OFFSETS = { 0: 0, 1: 5, 2: 10, 3: 15, 4: 19, 5: 24 };
-
   practiceSequence = cells.map(cell => {
     const sIdx = Number(cell.dataset.stringIndex);
     const fret = Number(cell.dataset.fret);
     const pitchVal = STRING_OFFSETS[sIdx] + fret;
     return { cell, sIdx, fret, pitchVal };
   });
-
-  // 1. Fase Subida: Ordenar (Cuerda 6 a 1, Traste Ascendente)
   practiceSequence.sort((a, b) => {
     if (a.sIdx !== b.sIdx) return a.sIdx - b.sIdx;
     return a.fret - b.fret;
   });
-
   if (practiceSequence.length === 0) return;
-
-  // 2. Fase Bajada: Invertir y quitar extremos para evitar duplicados en el loop (aguda y grave)
   const descendingPart = [...practiceSequence].reverse().slice(1, -1);
-
-  // 3. Unión: Secuencia Completa
   practiceSequence = practiceSequence.concat(descendingPart);
   practiceIndex = 0;
   const bpm = document.getElementById("bpmInput").value;
@@ -525,42 +568,31 @@ function runPracticeTick() {
 function playNote(stringIndex, fret) {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   if (audioCtx.state === 'suspended') audioCtx.resume();
-
-  // 0:E grave, 1:A, 2:D, 3:G, 4:B, 5:e agudo
   const STRING_OFFSETS = { 0: 0, 1: 5, 2: 10, 3: 15, 4: 19, 5: 24 };
   const semitones = STRING_OFFSETS[stringIndex] + fret;
   const freq = 82.41 * Math.pow(2, semitones / 12);
-
-  // Feedback Visual: Pulso
   const cell = document.querySelector(`.cell[data-string-index="${stringIndex}"][data-fret="${fret}"]`);
   if (cell) {
     cell.classList.remove("playing");
-    void cell.offsetWidth; // Trigger reflow
+    void cell.offsetWidth;
     cell.classList.add("playing");
     setTimeout(() => cell.classList.remove("playing"), 400);
   }
-
-  // Audio Engine: Sintetizador con Envolvente (ADSR) y Filtro
   const osc = audioCtx.createOscillator();
   const gainNode = audioCtx.createGain();
   const filter = audioCtx.createBiquadFilter();
-
   osc.type = "triangle";
   osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-
   filter.type = "lowpass";
-  filter.frequency.setValueAtTime(2000, audioCtx.currentTime); // Suaviza el timbre
-
+  filter.frequency.setValueAtTime(2000, audioCtx.currentTime);
   const now = audioCtx.currentTime;
   gainNode.gain.setValueAtTime(0, now);
-  gainNode.gain.linearRampToValueAtTime(0.5, now + 0.02);      // Attack
-  gainNode.gain.exponentialRampToValueAtTime(0.2, now + 0.15); // Decay
-  gainNode.gain.exponentialRampToValueAtTime(0.001, now + 1.5);// Release (Fade out largo)
-
+  gainNode.gain.linearRampToValueAtTime(0.5, now + 0.02);
+  gainNode.gain.exponentialRampToValueAtTime(0.2, now + 0.15);
+  gainNode.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
   osc.connect(filter);
   filter.connect(gainNode);
   gainNode.connect(audioCtx.destination);
-
   osc.start(now);
   osc.stop(now + 1.6);
 }
@@ -573,16 +605,13 @@ refreshNoteLabels();
 const cafecitoBtn = document.getElementById("cafecitoBtn");
 const cafecitoModal = document.getElementById("cafecitoModal");
 const closeBtn = document.querySelector(".close-btn");
-
 if (cafecitoBtn && cafecitoModal) {
   cafecitoBtn.addEventListener("click", () => {
     cafecitoModal.style.display = "grid";
   });
-
   closeBtn.addEventListener("click", () => {
     cafecitoModal.style.display = "none";
   });
-
   window.addEventListener("click", (event) => {
     if (event.target === cafecitoModal) {
       cafecitoModal.style.display = "none";
