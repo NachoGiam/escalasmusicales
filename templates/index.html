@@ -61,6 +61,28 @@
     </div>
   </div>
   </div>
+  <!-- Botón Cafecito Circular con Icono SVG -->
+  <button id="cafecitoBtn" class="cafecito-btn" title="Donar en Cafecito">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"
+      stroke-linejoin="round">
+      <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+      <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+      <line x1="6" y1="1" x2="6" y2="4"></line>
+      <line x1="10" y1="1" x2="10" y2="4"></line>
+      <line x1="14" y1="1" x2="14" y2="4"></line>
+    </svg>
+  </button>
+
+  <!-- Modal Cafecito -->
+  <div id="cafecitoModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn">&times;</span>
+      <img src="{{ url_for('static', filename='img/cafecito_ant.png') }}" alt="Hormiguita" class="cafecito-img" />
+      <p class="cafecito-phrase">Ayuda a este humilde servidor por amor a la música</p>
+      <a href="https://cafecito.app/nachogiam" target="_blank" class="cafecito-link">Ir a Cafecito</a>
+    </div>
+  </div>
+
   <script src="{{ url_for('static', filename='js/script.js') }}?v=4"></script>
 </body>
 

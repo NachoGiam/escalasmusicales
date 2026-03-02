@@ -568,3 +568,24 @@ function playNote(stringIndex, fret) {
 renderBoard();
 renderMarkers();
 refreshNoteLabels();
+
+// 8) Modal Cafecito
+const cafecitoBtn = document.getElementById("cafecitoBtn");
+const cafecitoModal = document.getElementById("cafecitoModal");
+const closeBtn = document.querySelector(".close-btn");
+
+if (cafecitoBtn && cafecitoModal) {
+  cafecitoBtn.addEventListener("click", () => {
+    cafecitoModal.style.display = "grid";
+  });
+
+  closeBtn.addEventListener("click", () => {
+    cafecitoModal.style.display = "none";
+  });
+
+  window.addEventListener("click", (event) => {
+    if (event.target === cafecitoModal) {
+      cafecitoModal.style.display = "none";
+    }
+  });
+}
