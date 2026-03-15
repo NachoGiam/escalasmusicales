@@ -521,36 +521,57 @@ document.getElementById("practiceBtn").addEventListener("click", () => {
 function stopPractice() {
   clearInterval(practiceInterval);
   practiceRunning = false;
-  document.getElementById("practiceBtn").textContent = "🎓 Practicar Escala";
+  document.getElementById("practiceBtn").textContent = "🎓 Practicar";
   document.querySelectorAll(".cell.active-practice").forEach(el => el.classList.remove("active-practice"));
 }
 
 function startPractice() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  const cells = Array.from(document.querySelectorAll(".cell.scale, .cell.root"));
-  if (cells.length === 0) {
-    alert("Primero selecciona una escala y tónica.");
-    return;
+
+  const isManualMode = document.getElementById("practiceModeSwitch").checked;
+  let cells = [];
+
+  if (isManualMode) {
+    cells = Array.from(document.querySelectorAll(".cell.on"));
+    if (cells.length === 0) {
+      alert("Primero marca algunas notas manualmente (clic en el mástil).");
+      return;
+    }
+  } else {
+    cells = Array.from(document.querySelectorAll(".cell.scale, .cell.root"));
+    if (cells.length === 0) {
+      alert("Primero selecciona una escala y tónica.");
+      return;
+    }
   }
-  const STRING_OFFSETS = { 0: 0, 1: 5, 2: 10, 3: 15, 4: 19, 5: 24 };
+
+  // Mapear celdas a objetos con datos necesarios
   practiceSequence = cells.map(cell => {
-    const sIdx = Number(cell.dataset.stringIndex);
-    const fret = Number(cell.dataset.fret);
-    const pitchVal = STRING_OFFSETS[sIdx] + fret;
-    return { cell, sIdx, fret, pitchVal };
+    return {
+      cell: cell,
+      sIdx: Number(cell.dataset.stringIndex),
+      fret: Number(cell.dataset.fret)
+    };
   });
+
+  // Orden: De Abajo (6ta, sIdx 0) hacia Arriba (1ra, sIdx 5)
+  // Y de Izquierda (fret 0) hacia Derecha (fret 20)
   practiceSequence.sort((a, b) => {
-    if (a.sIdx !== b.sIdx) return a.sIdx - b.sIdx;
-    return a.fret - b.fret;
+    if (a.sIdx !== b.sIdx) return a.sIdx - b.sIdx; // 0, 1, 2, 3, 4, 5
+    return a.fret - b.fret; // 0, 1, 2...
   });
+
   if (practiceSequence.length === 0) return;
+
+  // Ida y vuelta
   const descendingPart = [...practiceSequence].reverse().slice(1, -1);
   practiceSequence = practiceSequence.concat(descendingPart);
+
   practiceIndex = 0;
   const bpm = document.getElementById("bpmInput").value;
   const ms = 60000 / bpm;
   practiceRunning = true;
-  document.getElementById("practiceBtn").textContent = "⏹ Detener Práctica";
+  document.getElementById("practiceBtn").textContent = "⏹ Detener";
   runPracticeTick();
   practiceInterval = setInterval(runPracticeTick, ms);
 }
@@ -558,9 +579,11 @@ function startPractice() {
 function runPracticeTick() {
   document.querySelectorAll(".cell.active-practice").forEach(el => el.classList.remove("active-practice"));
   const item = practiceSequence[practiceIndex];
-  item.cell.classList.add("active-practice");
-  if (document.getElementById("metroSound").checked) {
-    playNote(item.sIdx, item.fret);
+  if (item && item.cell) {
+    item.cell.classList.add("active-practice");
+    if (document.getElementById("metroSound").checked) {
+      playNote(item.sIdx, item.fret);
+    }
   }
   practiceIndex = (practiceIndex + 1) % practiceSequence.length;
 }
