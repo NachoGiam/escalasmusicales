@@ -410,7 +410,7 @@ function applyScaleHighlight() {
 
 // 6) Manejo de Eventos
 
-rootSelect.addEventListener("change", () => { refreshNoteLabels(); updateAndApply(); });
+rootSelect.addEventListener("change", () => { updateUI(); });
 shapeSelect.addEventListener("change", () => { selectedShapeId = shapeSelect.value; updateAndApply(); });
 
 scaleSelect.addEventListener("change", () => {
@@ -597,9 +597,306 @@ function playNote(stringIndex, fret) {
   osc.stop(now + 1.6);
 }
 
+// --- 9) Diatonic Chord Engine ---
+
+const CHORD_LIBRARY = {
+  "maj": [
+    { name: "E-Shape", rootString: 0, frets: [0, 2, 2, 1, 0, 0] },
+    { name: "A-Shape", rootString: 1, frets: [null, 0, 2, 2, 2, 0] }
+  ],
+  "min": [
+    { name: "Em-Shape", rootString: 0, frets: [0, 2, 2, 0, 0, 0] },
+    { name: "Am-Shape", rootString: 1, frets: [null, 0, 2, 2, 1, 0] }
+  ],
+  "dim": [
+    { name: "Dim-Shape", rootString: 0, frets: [0, 1, 2, null, null, null] },
+    { name: "Dim-Shape", rootString: 1, frets: [null, 0, 1, 2, 1, null] }
+  ],
+  "maj7": [
+    { name: "E-Maj7", rootString: 0, frets: [0, null, 1, 1, 0, null] },
+    { name: "A-Maj7", rootString: 1, frets: [null, 0, 2, 1, 2, 0] }
+  ],
+  "m7": [
+    { name: "E-m7", rootString: 0, frets: [0, 2, 0, 0, 0, 0] },
+    { name: "A-m7", rootString: 1, frets: [null, 0, 2, 0, 1, 0] }
+  ],
+  "7": [
+    { name: "E-7", rootString: 0, frets: [0, 2, 0, 1, 0, 0] },
+    { name: "A-7", rootString: 1, frets: [null, 0, 2, 0, 2, 0] }
+  ],
+  "m7b5": [
+    { name: "m7b5-Shape", rootString: 0, frets: [0, 1, 1, 0, null, null] },
+    { name: "m7b5-Shape", rootString: 1, frets: [null, 0, 1, 1, 1, null] }
+  ]
+};
+
+const DIATONIC_MODES = {
+  "major": {
+    triads: ["maj", "min", "min", "maj", "maj", "min", "dim"],
+    sevenths: ["maj7", "m7", "m7", "maj7", "7", "m7", "m7b5"],
+    degrees: ["I", "ii", "iii", "IV", "V", "vi", "vii°"]
+  },
+  "minor": {
+    triads: ["min", "dim", "maj", "min", "min", "maj", "maj"],
+    sevenths: ["m7", "m7b5", "maj7", "m7", "m7", "maj7", "7"],
+    degrees: ["i", "ii°", "III", "iv", "v", "VI", "VII"]
+  }
+};
+
+let chordVariations = {}; // Store current variation index per degree
+
+// --- 9) Diatonic Chord Engine (Floating Pop-up Version) ---
+
+// ... (CHORD_LIBRARY y DIATONIC_MODES se mantienen igual) ...
+
+let currentPopupChord = null; // { degreeIndex, shapeIndex, rootName, fullName, degreeLabel, type }
+
+const chordsListEl = document.getElementById("chords-list");
+const chordTypeToggle = document.getElementById("chordTypeToggle");
+const chordPopup = document.getElementById("chord-popup");
+const popupName = document.getElementById("popup-chord-name");
+const popupDegree = document.getElementById("popup-chord-degree");
+const popupDiagContainer = document.getElementById("popup-diagram-container");
+const popupVarLabel = document.getElementById("popup-var-label");
+const popupPrev = document.getElementById("popup-prev");
+const popupNext = document.getElementById("popup-next");
+
+if (chordTypeToggle) {
+  chordTypeToggle.addEventListener("change", () => {
+    closeChordPopup();
+    updateChordsPanel();
+  });
+}
+
+function updateChordsPanel() {
+  if (!selectedScale || !DIATONIC_MODES[selectedScale]) {
+    chordsListEl.innerHTML = '<div class="no-selection" style="font-size:0.7rem; color:var(--muted); text-align:center;">Selecciona escala</div>';
+    return;
+  }
+
+  const rootName = rootSelect.value;
+  const modeConfig = DIATONIC_MODES[selectedScale];
+  const isSevenths = chordTypeToggle.checked;
+  const chordTypes = isSevenths ? modeConfig.sevenths : modeConfig.triads;
+
+  const rootPc = NOTE_TO_PC[rootName];
+  const scaleIntervals = Array.from(SCALES_CONFIG[selectedScale]).sort((a, b) => a - b);
+  const spellingMap = SCALE_SPELLINGS[`${rootName}:${selectedScale}`];
+
+  chordsListEl.innerHTML = "";
+
+  scaleIntervals.forEach((interval, index) => {
+    const degreeRootPc = (rootPc + interval) % 12;
+    const degreeRootName = (spellingMap && spellingMap[degreeRootPc]) ? spellingMap[degreeRootPc] : PC_TO_SHARP[degreeRootPc];
+    const chordTag = chordTypes[index];
+    const degreeLabel = modeConfig.degrees[index];
+
+    let chordName = degreeRootName;
+    if (chordTag === "min") chordName += "m";
+    if (chordTag === "dim") chordName += "°";
+    if (chordTag === "maj7") chordName += "Maj7";
+    if (chordTag === "m7") chordName += "m7";
+    if (chordTag === "7") chordName += "7";
+    if (chordTag === "m7b5") chordName += "m7b5";
+
+    renderChordCard(degreeRootName, chordName, degreeLabel, chordTag, index);
+  });
+}
+
+function renderChordCard(rootName, fullName, degreeLabel, type, index) {
+  const card = document.createElement("div");
+  card.className = "chord-card";
+
+  card.innerHTML = `
+        <div class="chord-info">
+            <span class="chord-name">${fullName}</span>
+            <span class="chord-degree">${degreeLabel}</span>
+        </div>
+    `;
+
+  card.addEventListener("click", (e) => {
+    e.stopPropagation();
+    showChordPopup(card, {
+      degreeIndex: index,
+      rootName: rootName,
+      fullName: fullName,
+      degreeLabel: degreeLabel,
+      type: type
+    });
+  });
+
+  chordsListEl.appendChild(card);
+}
+
+function showChordPopup(anchorEl, data) {
+  // Activar visualmente la tarjeta
+  document.querySelectorAll(".chord-card.active").forEach(c => c.classList.remove("active"));
+  anchorEl.classList.add("active");
+
+  const degreeIndex = data.degreeIndex;
+  if (chordVariations[degreeIndex] === undefined) chordVariations[degreeIndex] = 0;
+
+  const shapes = CHORD_LIBRARY[data.type] || [];
+  const currentVarIdx = chordVariations[degreeIndex] % shapes.length;
+  const shape = shapes[currentVarIdx];
+
+  // Actualizar contenido del Popup
+  popupName.textContent = data.fullName;
+  popupDegree.textContent = data.degreeLabel;
+  popupVarLabel.textContent = `Var. ${currentVarIdx + 1}`;
+
+  popupDiagContainer.innerHTML = "";
+  renderChordDiagram(popupDiagContainer, shape, data.rootName);
+
+  // Posicionamiento
+  chordPopup.style.display = "block";
+  const rect = anchorEl.getBoundingClientRect();
+  const popupRect = chordPopup.getBoundingClientRect();
+
+  // Calcular posición centrada verticalmente respecto a la tarjeta
+  // (Top de la tarjeta + mitad de su altura) - mitad de la altura del popup
+  let topPos = (rect.top + window.scrollY + rect.height / 2) - (popupRect.height / 2);
+
+  // Evitar que el popup se salga por arriba de la pantalla
+  if (topPos < window.scrollY + 10) topPos = window.scrollY + 10;
+
+  chordPopup.style.top = `${topPos}px`;
+  chordPopup.style.left = `${rect.left - popupRect.width - 20}px`;
+
+  // Ajustar la flecha para que siempre apunte al centro de la tarjeta clickeada
+  const arrow = chordPopup.querySelector(".popup-arrow");
+  if (arrow) {
+    const arrowTop = (rect.top + window.scrollY + rect.height / 2) - topPos - 7;
+    arrow.style.top = `${arrowTop}px`;
+  }
+
+  // Guardar estado actual para controles
+  currentPopupChord = { ...data, shapeIndex: currentVarIdx };
+
+  // Resaltar en el mástil
+  highlightChordOnBoard(shape, data.rootName);
+}
+
+function updatePopupContent() {
+  if (!currentPopupChord) return;
+  const data = currentPopupChord;
+  const shapes = CHORD_LIBRARY[data.type] || [];
+  const currentVarIdx = chordVariations[data.degreeIndex] % shapes.length;
+  const shape = shapes[currentVarIdx];
+
+  popupVarLabel.textContent = `Var. ${currentVarIdx + 1}`;
+  popupDiagContainer.innerHTML = "";
+  renderChordDiagram(popupDiagContainer, shape, data.rootName);
+
+  currentPopupChord.shapeIndex = currentVarIdx;
+  highlightChordOnBoard(shape, data.rootName);
+}
+
+popupPrev.addEventListener("click", (e) => {
+  e.stopPropagation();
+  if (!currentPopupChord) return;
+  const shapes = CHORD_LIBRARY[currentPopupChord.type] || [];
+  chordVariations[currentPopupChord.degreeIndex] = (chordVariations[currentPopupChord.degreeIndex] - 1 + shapes.length) % shapes.length;
+  updatePopupContent();
+});
+
+popupNext.addEventListener("click", (e) => {
+  e.stopPropagation();
+  if (!currentPopupChord) return;
+  const shapes = CHORD_LIBRARY[currentPopupChord.type] || [];
+  chordVariations[currentPopupChord.degreeIndex] = (chordVariations[currentPopupChord.degreeIndex] + 1) % shapes.length;
+  updatePopupContent();
+});
+
+function closeChordPopup() {
+  chordPopup.style.display = "none";
+  currentPopupChord = null;
+  document.querySelectorAll(".chord-card.active").forEach(c => c.classList.remove("active"));
+}
+
+window.addEventListener("click", (e) => {
+  if (chordPopup.style.display === "block" && !chordPopup.contains(e.target)) {
+    closeChordPopup();
+  }
+});
+
+function renderChordDiagram(container, shape, rootName) {
+  const diag = document.createElement("div");
+  diag.className = "chord-diagram";
+
+  let html = `
+        <div class="diag-nut"></div>
+        <div class="diag-strings">
+            ${[0, 1, 2, 3, 4, 5].map(() => '<div class="diag-string"></div>').join('')}
+        </div>
+        <div class="diag-frets">
+            ${[0, 1, 2, 3, 4].map(() => '<div class="diag-fret"></div>').join('')}
+        </div>
+    `;
+
+  shape.frets.forEach((fretRel, sIdx) => {
+    if (fretRel === null) {
+      html += `<div class="diag-mute" style="left: ${sIdx * (100 / 5) + 5}px">×</div>`;
+    } else if (fretRel === 0) {
+      html += `<div class="diag-open" style="left: ${sIdx * (100 / 5) + 5}px"></div>`;
+    } else {
+      const top = (fretRel - 0.5) * (130 / 5);
+      const left = sIdx * (100 / 5) + 5;
+      const isRoot = (sIdx === shape.rootString);
+      html += `<div class="diag-note ${isRoot ? 'root' : ''}" style="top: ${top}px; left: ${left}px"></div>`;
+    }
+  });
+
+  diag.innerHTML = html;
+  container.appendChild(diag);
+}
+
+function highlightChordOnBoard(shape, rootName) {
+  const rootPc = NOTE_TO_PC[rootName];
+  const refString = shape.rootString;
+  const openPc = OPEN_STRING_PC[refString];
+  let rootFret = (rootPc - openPc + 12) % 12;
+
+  // Si la tónica está muy baja (ej: traste 1), intentar moverla al traste 13 si es necesario?
+  // Por ahora, usamos el traste más bajo posible.
+
+  const notesToHighlight = [];
+  shape.frets.forEach((fRel, sIdx) => {
+    if (fRel !== null) {
+      const absoluteFret = rootFret + fRel;
+      if (absoluteFret >= 0 && absoluteFret <= 20) {
+        notesToHighlight.push({ string: sIdx, fret: absoluteFret });
+      }
+    }
+  });
+
+  // Limpiar marcas manuales ('on')
+  document.querySelectorAll(".cell.on").forEach(el => el.classList.remove("on"));
+  notesToHighlight.forEach(n => {
+    const cell = document.querySelector(`.cell[data-string-index="${n.string}"][data-fret="${n.fret}"]`);
+    if (cell) {
+      cell.classList.add("on");
+    }
+  });
+
+  // Tocar el acorde (arpegio rápido)
+  notesToHighlight.forEach((n, i) => {
+    setTimeout(() => playNote(n.string, n.fret), i * 50);
+  });
+}
+
+// Sobrescribir updateUI para incluir el panel de acordes
+const oldUpdateUI = updateUI;
+updateUI = function () {
+  oldUpdateUI();
+  updateChordsPanel();
+};
+
+// --- Inicialización ---
 renderBoard();
 renderMarkers();
 refreshNoteLabels();
+updateChordsPanel();
 
 // 8) Modal Cafecito
 const cafecitoBtn = document.getElementById("cafecitoBtn");
@@ -609,9 +906,11 @@ if (cafecitoBtn && cafecitoModal) {
   cafecitoBtn.addEventListener("click", () => {
     cafecitoModal.style.display = "grid";
   });
-  closeBtn.addEventListener("click", () => {
-    cafecitoModal.style.display = "none";
-  });
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      cafecitoModal.style.display = "none";
+    });
+  }
   window.addEventListener("click", (event) => {
     if (event.target === cafecitoModal) {
       cafecitoModal.style.display = "none";

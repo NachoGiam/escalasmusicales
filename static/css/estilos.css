@@ -23,7 +23,7 @@
 
 body {
   margin: 0;
-  padding: 40px 20px;
+  padding: 10px 20px;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   background-color: #121212;
   color: var(--text);
@@ -47,13 +47,13 @@ h1 {
 
 p {
   color: var(--muted);
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 /* Fretboard Container */
 .board {
   background: #1a1a1a;
-  padding: 40px 20px;
+  padding: 20px 20px;
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   margin-bottom: 2rem;
@@ -524,4 +524,302 @@ button#clearBtn:hover {
 
 .cafecito-link:active {
   transform: translateY(0);
+}
+
+/* Main Layout */
+.main-layout {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  margin-top: 10px;
+  position: relative;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* --- Narrow Sidebar & Floating Popup --- */
+
+#chords-sidebar {
+  width: 100px;
+  /* Ultra estrecho */
+  background: #1e1e1e;
+  border-radius: 15px;
+  padding: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh;
+  position: sticky;
+  top: 20px;
+  z-index: 100;
+}
+
+.sidebar-header h2 {
+  font-size: 0.85rem;
+  margin-bottom: 5px;
+  text-align: center;
+  color: #fff;
+}
+
+.toggle-container {
+  display: flex;
+  justify-content: center;
+  font-size: 0.65rem;
+  color: var(--muted);
+}
+
+.chords-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-top: 10px;
+}
+
+/* Chord Item (Compact) */
+.chord-card {
+  background: #2a2a2a;
+  border-radius: 8px;
+  padding: 8px 4px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.chord-card:hover {
+  background: #3a3a3a;
+  border-color: var(--scale-color);
+  transform: translateX(-3px);
+}
+
+.chord-card.active {
+  background: var(--scale-color);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.chord-card.active .chord-name,
+.chord-card.active .chord-degree {
+  color: #fff;
+}
+
+.chord-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chord-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--scale-color);
+}
+
+.chord-degree {
+  font-size: 0.6rem;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+/* Floating Popup */
+.chord-popup {
+  display: none;
+  position: absolute;
+  z-index: 2500;
+  background: rgba(30, 30, 30, 0.95);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-radius: 20px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  width: 150px;
+  pointer-events: auto;
+  animation: popupReveal 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popupReveal {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateX(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+  }
+}
+
+.popup-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.popup-header {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+#popup-diagram-container {
+  margin: 10px 0;
+}
+
+/* Diagram Adjustments for Popup */
+.chord-diagram {
+  width: 110px;
+  height: 130px;
+  background: #333;
+  border-radius: 8px;
+  position: relative;
+  border: 1px solid #444;
+  margin: 15px 0;
+}
+
+.diag-nut {
+  height: 4px;
+  background: var(--nut-color);
+  width: 100%;
+  position: absolute;
+  top: 0;
+}
+
+.diag-strings {
+  display: flex;
+  justify-content: space-between;
+  height: 100%;
+  padding: 0 6px;
+  position: absolute;
+  width: 100%;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+}
+
+.diag-string {
+  width: 1px;
+  background: rgba(255, 255, 255, 0.15);
+  height: 100%;
+}
+
+.diag-frets {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.diag-fret {
+  flex: 1;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.diag-note {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+}
+
+.diag-note.root {
+  background: var(--root-color);
+  box-shadow: 0 0 8px var(--root-color);
+}
+
+.diag-mute {
+  position: absolute;
+  font-size: 10px;
+  color: #ff4444;
+  transform: translateX(-50%);
+  top: -12px;
+}
+
+.diag-open {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border: 1px solid #fff;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  top: -10px;
+}
+
+.popup-arrow {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: #1e1e1e;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  right: -8px;
+  top: 30px;
+  transform: rotate(45deg);
+}
+
+.card-controls {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.card-btn {
+  background: #333;
+  border: 1px solid #444;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.card-btn:hover {
+  background: #444;
+  border-color: var(--scale-color);
+}
+
+/* Responsiveness */
+@media (max-width: 800px) {
+  .main-layout {
+    flex-direction: column;
+  }
+
+  #chords-sidebar {
+    width: 100%;
+    position: static;
+    max-height: none;
+    order: 2;
+  }
+
+  .chords-list {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+
+  .chord-card {
+    min-width: 80px;
+  }
+
+  .chord-popup {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+  }
+
+  .popup-arrow {
+    display: none;
+  }
 }
