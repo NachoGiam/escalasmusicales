@@ -50,6 +50,33 @@ p {
   margin-bottom: 1rem;
 }
 
+.seo-section {
+  margin-top: 60px;
+  padding: 40px;
+  background: #1a1a1a;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.seo-section h2 {
+  font-size: 1.4rem;
+  margin-top: 30px;
+  color: #fff;
+  border-left: 4px solid var(--scale-color);
+  padding-left: 15px;
+}
+
+.seo-section p {
+  margin-bottom: 20px;
+  font-size: 1rem;
+  color: var(--muted);
+  max-width: 900px;
+}
+
+.seo-section strong {
+  color: var(--scale-color);
+}
+
 /* Fretboard Container */
 .board {
   background: #1a1a1a;
