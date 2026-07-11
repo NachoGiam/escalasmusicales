@@ -34,7 +34,8 @@ const SCALES_CONFIG = {
   "lydian": new Set([0, 2, 4, 6, 7, 9, 11]),
   "mixolydian": new Set([0, 2, 4, 5, 7, 9, 10]),
   "minor": new Set([0, 2, 3, 5, 7, 8, 10]),
-  "locrian": new Set([0, 1, 3, 5, 6, 8, 10])
+  "locrian": new Set([0, 1, 3, 5, 6, 8, 10]),
+  "chromatic": new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
 };
 
 // Offset para encontrar la tónica de la escala Mayor Relativa (en semitonos)
@@ -45,7 +46,8 @@ const RELATIVE_MAJOR_OFFSET = {
   "lydian": 7,
   "mixolydian": 5,
   "minor": 3,
-  "locrian": 1
+  "locrian": 1,
+  "chromatic": 0
 };
 
 // Diccionario de Nombres Correctos (Spelling)
@@ -387,7 +389,7 @@ function updateAndApply() {
 }
 
 function applyScaleHighlight() {
-  document.querySelectorAll(".cell.scale, .cell.root").forEach(el => el.classList.remove("scale", "root"));
+  document.querySelectorAll(".cell.scale, .cell.root, .cell.chromatic").forEach(el => el.classList.remove("scale", "root", "chromatic"));
   if (!selectedScale) return;
 
   currentScaleNotes.forEach(key => {
@@ -398,6 +400,9 @@ function applyScaleHighlight() {
     const cell = document.querySelector(`.cell[data-string-index="${sIdx}"][data-fret="${fret}"]`);
     if (cell) {
       cell.classList.add("scale");
+      if (selectedScale === "chromatic") {
+        cell.classList.add("chromatic");
+      }
       if (currentRootNotes.has(key)) cell.classList.add("root");
 
       if (noteNamesMap.has(key)) {
@@ -419,7 +424,7 @@ scaleSelect.addEventListener("change", () => {
 });
 
 document.getElementById("clearBtn").addEventListener("click", () => {
-  document.querySelectorAll(".cell.on, .cell.scale, .cell.root").forEach(el => el.classList.remove("on", "scale", "root"));
+  document.querySelectorAll(".cell.on, .cell.scale, .cell.root, .cell.chromatic").forEach(el => el.classList.remove("on", "scale", "root", "chromatic"));
   selectedScale = "";
   scaleSelect.value = "";
   currentScaleNotes.clear();

@@ -20,7 +20,8 @@ SCALES = {
     "lydian": {0, 2, 4, 6, 7, 9, 11},
     "mixolydian": {0, 2, 4, 5, 7, 9, 10},
     "minor": {0, 2, 3, 5, 7, 8, 10},  # Menor Natural
-    "locrian": {0, 1, 3, 5, 6, 8, 10}
+    "locrian": {0, 1, 3, 5, 6, 8, 10},
+    "chromatic": {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}
 }
 
 # Offset para encontrar la tónica de la escala Mayor Relativa (en semitonos)
@@ -31,7 +32,8 @@ RELATIVE_MAJOR_OFFSET = {
     "lydian": 7,
     "mixolydian": 5,
     "minor": 3,
-    "locrian": 1
+    "locrian": 1,
+    "chromatic": 0
 }
 
 # Diccionario de Nombres Correctos (Spelling)
