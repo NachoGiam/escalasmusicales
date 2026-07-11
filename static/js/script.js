@@ -637,7 +637,7 @@ const CHORD_LIBRARY = {
     { name: "Am-Shape", rootString: 1, frets: [null, 0, 2, 2, 1, 0] }
   ],
   "dim": [
-    { name: "Dim-Shape", rootString: 0, frets: [0, 1, 2, null, null, null] },
+    { name: "Dim-Shape", rootString: 0, frets: [0, 1, 2, 0, null, null] },
     { name: "Dim-Shape", rootString: 1, frets: [null, 0, 1, 2, 1, null] }
   ],
   "maj7": [
@@ -653,8 +653,8 @@ const CHORD_LIBRARY = {
     { name: "A-7", rootString: 1, frets: [null, 0, 2, 0, 2, 0] }
   ],
   "m7b5": [
-    { name: "m7b5-Shape", rootString: 0, frets: [0, 1, 1, 0, null, null] },
-    { name: "m7b5-Shape", rootString: 1, frets: [null, 0, 1, 1, 1, null] }
+    { name: "m7b5-Shape", rootString: 0, frets: [0, 1, 0, 0, null, null] },
+    { name: "m7b5-Shape", rootString: 1, frets: [null, 0, 1, 0, 1, null] }
   ]
 };
 
