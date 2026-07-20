@@ -154,14 +154,303 @@ const SHAPES_CONFIG = {
   }
 };
 
-const SHAPES_SELECT = [
-  { id: "all", name: "Todos" },
-  { id: "s1", name: "Dibujo 1" },
-  { id: "s2", name: "Dibujo 2" },
-  { id: "s3", name: "Dibujo 3" },
-  { id: "s4", name: "Dibujo 4" },
-  { id: "s5", name: "Dibujo 5" }
-];
+// --- CONFIGURACIÓN DE IDIOMA Y TRADUCCIÓN ---
+let currentLang = localStorage.getItem("scale_explorer_lang") || "es";
+
+const TRANSLATIONS = {
+  es: {
+    app_title: "Scale Explorer",
+    app_subtitle: "Explorá escalas, modos y acordes en todo el diapasón.",
+    app_tip: "Tip: elegí escala + tónica (ej: Mayor + C) y se marcan todas las notas.",
+    app_instructions: "Click para marcar/desmarcar manual. Selecciona una escala para resaltar automáticamente.",
+    tonic_label: "Tónica:",
+    shape_label: "Dibujo:",
+    mode_label: "Modo:",
+    none_option: "-- Ninguno --",
+    metro_toggle: "▶️ Metrónomo",
+    metro_toggle_playing: "⏸ Metrónomo",
+    metro_sound: "Sonido",
+    practice_label_scale: "Escala",
+    practice_label_manual: "Manual",
+    practice_btn: "🎓 Practicar",
+    practice_btn_stop: "⏹ Detener",
+    clear_btn: "Limpiar",
+    chords_title: "Acordes",
+    chords_no_selection: "Selecciona escala",
+    chord_type_toggle: "Séptima",
+    
+    // Scale Panel
+    scale_panel_tonic: "Tónica",
+    scale_panel_notes: "Notas",
+    scale_panel_formula: "Fórmula",
+    scale_panel_character: "Carácter",
+    scale_panel_main_chord: "Acorde principal",
+    scale_panel_placeholder: "Selecciona una tónica y un modo para ver la información teórica.",
+
+    // Chord Pop-up
+    popup_variation: "Variante",
+    popup_open_pos: "Posición abierta",
+    popup_barre_pos: "Posición con cejilla",
+    popup_notes: "Notas del acorde",
+    popup_type: "Tipo de acorde",
+
+    // Cafecito Support Section
+    support_title: "Apoya a Scale Explorer",
+    support_desc: "Scale Explorer es una herramienta gratuita. Tu cafecito ayuda a mantenerla online y sumar nuevas funciones.",
+    support_button: "Ir a Cafecito",
+    
+    // SEO / Info cards
+    seo_title: "¿Qué podés hacer con Scale Explorer?",
+    seo_card1_title: "Aprender el diapasón",
+    seo_card1_desc: "Visualizá las notas de una escala o modo a lo largo de toda la guitarra.",
+    seo_card2_title: "Practicar posiciones",
+    seo_card2_desc: "Estudiá figuras, patrones y posiciones acompañándote con el metrónomo.",
+    seo_card3_title: "Comprender la armonía",
+    seo_card3_desc: "Descubrí las notas, intervalos y acordes relacionados con cada escala.",
+    seo_card4_title: "Explorar modos",
+    seo_card4_desc: "Compará el carácter y la estructura de los diferentes modos musicales.",
+
+    // Scale names translations
+    scale_major: "Mayor (Jónico)",
+    scale_dorian: "Dórico",
+    scale_phrygian: "Frigio",
+    scale_lydian: "Lidio",
+    scale_mixolydian: "Mixolidio",
+    scale_minor: "Menor (Eólico)",
+    scale_locrian: "Locrio",
+    scale_chromatic: "Cromática",
+
+    // Shape options
+    shape_all: "Todos",
+    shape_s1: "Dibujo 1",
+    shape_s2: "Dibujo 2",
+    shape_s3: "Dibujo 3",
+    shape_s4: "Dibujo 4",
+    shape_s5: "Dibujo 5",
+
+    app_secondary_brand: "Escalas musicales para guitarra"
+  },
+  en: {
+    app_title: "Scale Explorer",
+    app_subtitle: "Explore scales, modes and chords across the entire fretboard.",
+    app_tip: "Tip: select scale + tonic (e.g. Major + C) and all notes will be highlighted.",
+    app_instructions: "Click to toggle notes manually. Select a scale to highlight notes automatically.",
+    tonic_label: "Tonic:",
+    shape_label: "Shape:",
+    mode_label: "Mode:",
+    none_option: "-- None --",
+    metro_toggle: "▶️ Metronome",
+    metro_toggle_playing: "⏸ Metronome",
+    metro_sound: "Sound",
+    practice_label_scale: "Scale",
+    practice_label_manual: "Manual",
+    practice_btn: "🎓 Practice",
+    practice_btn_stop: "⏹ Stop",
+    clear_btn: "Clear",
+    chords_title: "Chords",
+    chords_no_selection: "Select scale",
+    chord_type_toggle: "Seventh",
+
+    // Scale Panel
+    scale_panel_tonic: "Tonic",
+    scale_panel_notes: "Notes",
+    scale_panel_formula: "Formula",
+    scale_panel_character: "Character",
+    scale_panel_main_chord: "Main chord",
+    scale_panel_placeholder: "Select a tonic and a mode to see the theoretical information.",
+
+    // Chord Pop-up
+    popup_variation: "Variation",
+    popup_open_pos: "Open position",
+    popup_barre_pos: "Barre position",
+    popup_notes: "Chord notes",
+    popup_type: "Chord type",
+
+    // Cafecito Support Section
+    support_title: "Support Scale Explorer",
+    support_desc: "Scale Explorer is a free tool. Your support helps keep it online and add new features.",
+    support_button: "Go to Cafecito",
+
+    // SEO / Info cards
+    seo_title: "What can you do with Scale Explorer?",
+    seo_card1_title: "Master the fretboard",
+    seo_card1_desc: "Visualize the notes of any scale or mode across the entire guitar neck.",
+    seo_card2_title: "Practice positions",
+    seo_card2_desc: "Study shapes, patterns, and positions while practicing with the metronome.",
+    seo_card3_title: "Understand harmony",
+    seo_card3_desc: "Discover notes, intervals, and chords related to each scale.",
+    seo_card4_title: "Explore modes",
+    seo_card4_desc: "Compare the character and structure of different musical modes.",
+
+    // Scale names translations
+    scale_major: "Major (Ionian)",
+    scale_dorian: "Dorian",
+    scale_phrygian: "Phrygian",
+    scale_lydian: "Lydian",
+    scale_mixolydian: "Mixolydian",
+    scale_minor: "Minor (Aeolian)",
+    scale_locrian: "Locrian",
+    scale_chromatic: "Chromatic",
+
+    // Shape options
+    shape_all: "All",
+    shape_s1: "Shape 1",
+    shape_s2: "Shape 2",
+    shape_s3: "Shape 3",
+    shape_s4: "Shape 4",
+    shape_s5: "Shape 5",
+
+    app_secondary_brand: "Guitar musical scales"
+  }
+};
+
+const NOTE_NAMES_ES = {
+  "C": "Do", "C#": "Do♯", "Db": "Re♭", "D": "Re", "D#": "Re♯", "Eb": "Mi♭", "E": "Mi",
+  "F": "Fa", "F#": "Fa♯", "Gb": "Sol♭", "G": "Sol", "G#": "Sol♯", "Ab": "La♭", "A": "La",
+  "A#": "La♯", "Bb": "Si♭", "B": "Si"
+};
+
+const SPANISH_ROOT_NAMES = NOTE_NAMES_ES;
+
+const ENGLISH_ROOT_NAMES = {
+  "C": "C", "C#": "C#", "Db": "Db", "D": "D", "D#": "D#", "Eb": "Eb", "E": "E",
+  "F": "F", "F#": "F#", "Gb": "Gb", "G": "G", "G#": "G#", "Ab": "Ab", "A": "A",
+  "A#": "A#", "Bb": "Bb", "B": "B"
+};
+
+function getTonicDisplayName(note, lang) {
+  if (lang === "es") {
+    return NOTE_NAMES_ES[note] || note;
+  }
+  return note;
+}
+
+function getRootNameTranslated(root, lang) {
+  if (lang === "es") {
+    return SPANISH_ROOT_NAMES[root] || root;
+  }
+  return ENGLISH_ROOT_NAMES[root] || root;
+}
+
+const SCALE_THEORY_DATA = {
+  major: {
+    formula: "1 – 2 – 3 – 4 – 5 – 6 – 7",
+    chordSuffix: "Maj7",
+    es: {
+      name: "Mayor (Jónico)",
+      character: "Sonido alegre, brillante y estable. Base de la música tonal occidental."
+    },
+    en: {
+      name: "Major (Ionian)",
+      character: "Bright, cheerful, and stable. The foundation of Western tonal music."
+    }
+  },
+  dorian: {
+    formula: "1 – 2 – ♭3 – 4 – 5 – 6 – ♭7",
+    chordSuffix: "m7",
+    es: {
+      name: "Dórico",
+      character: "Modo menor con sexta mayor, de sonido abierto, misterioso y dinámico."
+    },
+    en: {
+      name: "Dorian",
+      character: "Minor character but with a major sixth that adds a bright, modern, jazzy feel. Very popular in rock and funk."
+    }
+  },
+  phrygian: {
+    formula: "1 – ♭2 – ♭3 – 4 – 5 – ♭6 – ♭7",
+    chordSuffix: "m7",
+    es: {
+      name: "Frigio",
+      character: "Carácter menor exótico y tenso debido a su segunda menor (♭2). Común en el flamenco, metal y música de raíces españolas."
+    },
+    en: {
+      name: "Phrygian",
+      character: "Exotic and tense minor character due to its minor second (♭2). Common in flamenco, metal, and Spanish-flavored music."
+    }
+  },
+  lydian: {
+    formula: "1 – 2 – 3 – ♯4 – 5 – 6 – 7",
+    chordSuffix: "Maj7",
+    es: {
+      name: "Lidio",
+      character: "Sonido místico, aéreo y espacial debido a la cuarta aumentada (♯4). Frecuente en bandas sonoras de ciencia ficción."
+    },
+    en: {
+      name: "Lydian",
+      character: "Mystical, airy, and space-like sound due to its augmented fourth (♯4). Frequently used in sci-fi soundtracks."
+    }
+  },
+  mixolydian: {
+    formula: "1 – 2 – 3 – 4 – 5 – 6 – ♭7",
+    chordSuffix: "7",
+    es: {
+      name: "Mixolidio",
+      character: "Carácter mayor con una séptima menor (♭7) que le quita tensión. Esencial en el blues, rock clásico y rock and roll."
+    },
+    en: {
+      name: "Mixolydian",
+      character: "Major character with a minor seventh (♭7) that reduces tension. Essential in blues, classic rock, and rock 'n' roll."
+    }
+  },
+  minor: {
+    formula: "1 – 2 – ♭3 – 4 – 5 – ♭6 – ♭7",
+    chordSuffix: "m7",
+    es: {
+      name: "Menor (Eólico)",
+      character: "Carácter triste, melancólico y dramático. La escala menor natural por excelencia."
+    },
+    en: {
+      name: "Minor (Aeolian)",
+      character: "Sad, melancholic, and dramatic character. The natural minor scale par excellence."
+    }
+  },
+  locrian: {
+    formula: "1 – ♭2 – ♭3 – 4 – ♭5 – ♭6 – ♭7",
+    chordSuffix: "m7b5",
+    es: {
+      name: "Locrio",
+      character: "Sonido muy inestable, tenso y oscuro. Contiene una quinta disminuida (♭5). Usado en jazz y metal extremo."
+    },
+    en: {
+      name: "Locrian",
+      character: "Very unstable, tense, and dark sound. Contains a diminished fifth (♭5). Used in jazz and heavy metal."
+    }
+  },
+  chromatic: {
+    formula: "1 – ♭2 – 2 – ♭3 – 3 – 4 – ♭5 – 5 – ♭6 – 6 – ♭7 – 7",
+    chordSuffix: "",
+    es: {
+      name: "Cromática",
+      character: "Contiene las doce notas de la escala occidental. Se utiliza para pasajes de paso y ejercicios técnicos."
+    },
+    en: {
+      name: "Chromatic",
+      character: "Contains all twelve notes of the Western scale. Used for passing tones and technical exercises."
+    }
+  }
+};
+
+const CHORD_TYPE_NAMES = {
+  es: {
+    "maj": "mayor",
+    "min": "menor",
+    "dim": "disminuido",
+    "maj7": "mayor con séptima mayor",
+    "m7": "menor con séptima menor",
+    "7": "séptima dominante",
+    "m7b5": "menor séptima con quinta bemol (semidisminuido)"
+  },
+  en: {
+    "maj": "major",
+    "min": "minor",
+    "dim": "diminished",
+    "maj7": "major seventh",
+    "m7": "minor seventh",
+    "7": "dominant seventh",
+    "m7b5": "minor seventh flat five (half-diminished)"
+  }
+};
 
 // GLOBAL DATA
 let currentScaleNotes = new Set(); // Stores "stringIndex:fret"
@@ -262,18 +551,62 @@ function pcToNameFallback(pc, rootName, selectedScale) {
 let selectedScale = "";
 let selectedShapeId = "all";
 
-// Inicializar Selectores
-NOTE_NAMES.forEach(n => {
-  const opt = document.createElement("option");
-  opt.value = n; opt.textContent = n;
-  rootSelect.appendChild(opt);
-});
+function populateSelectors() {
+  const lang = currentLang;
+  const prevRoot = rootSelect.value;
+  const prevShape = shapeSelect.value;
+  const prevScale = scaleSelect.value;
 
-SHAPES_SELECT.forEach(s => {
-  const opt = document.createElement("option");
-  opt.value = s.id; opt.textContent = s.name;
-  shapeSelect.appendChild(opt);
-});
+  rootSelect.innerHTML = "";
+  NOTE_NAMES.forEach(n => {
+    const opt = document.createElement("option");
+    opt.value = n;
+    opt.textContent = getTonicDisplayName(n, lang);
+    rootSelect.appendChild(opt);
+  });
+
+  shapeSelect.innerHTML = "";
+  const shapeOptions = [
+    { id: "all", nameKey: "shape_all" },
+    { id: "s1", nameKey: "shape_s1" },
+    { id: "s2", nameKey: "shape_s2" },
+    { id: "s3", nameKey: "shape_s3" },
+    { id: "s4", nameKey: "shape_s4" },
+    { id: "s5", nameKey: "shape_s5" }
+  ];
+  shapeOptions.forEach(s => {
+    const opt = document.createElement("option");
+    opt.value = s.id;
+    opt.textContent = TRANSLATIONS[lang][s.nameKey];
+    shapeSelect.appendChild(opt);
+  });
+
+  scaleSelect.innerHTML = "";
+  const scaleOptions = [
+    { id: "", nameKey: "none_option" },
+    { id: "major", nameKey: "scale_major" },
+    { id: "dorian", nameKey: "scale_dorian" },
+    { id: "phrygian", nameKey: "scale_phrygian" },
+    { id: "lydian", nameKey: "scale_lydian" },
+    { id: "mixolydian", nameKey: "scale_mixolydian" },
+    { id: "minor", nameKey: "scale_minor" },
+    { id: "locrian", nameKey: "scale_locrian" },
+    { id: "chromatic", nameKey: "scale_chromatic" }
+  ];
+  scaleOptions.forEach(s => {
+    const opt = document.createElement("option");
+    opt.value = s.id;
+    opt.textContent = TRANSLATIONS[lang][s.nameKey];
+    scaleSelect.appendChild(opt);
+  });
+
+  if (prevRoot) rootSelect.value = prevRoot;
+  if (prevShape) shapeSelect.value = prevShape;
+  if (prevScale) scaleSelect.value = prevScale;
+}
+
+// Inicializar Selectores
+populateSelectors();
 
 // 4) Aplicación de Escalas (Locales)
 
@@ -434,10 +767,128 @@ document.getElementById("clearBtn").addEventListener("click", () => {
   updateUIButtons();
 });
 
+function updateScaleInfoPanel() {
+  const panel = document.getElementById("scale-info-panel");
+  if (!panel) return;
+  
+  const lang = currentLang;
+  
+  if (!selectedScale) {
+    panel.innerHTML = `<div class="scale-info-placeholder">${TRANSLATIONS[lang]["scale_panel_placeholder"]}</div>`;
+    return;
+  }
+  
+  const rootVal = rootSelect.value;
+  const theory = SCALE_THEORY_DATA[selectedScale];
+  if (!theory) {
+    panel.innerHTML = "";
+    return;
+  }
+  
+  // Get scale notes in order
+  const rootPc = NOTE_TO_PC[rootVal];
+  const scaleIntervals = Array.from(SCALES_CONFIG[selectedScale]).sort((a, b) => a - b);
+  const spellingMap = SCALE_SPELLINGS[`${rootVal}:${selectedScale}`];
+  const fallbackNames = PC_TO_SHARP;
+  
+  const notesList = [];
+  scaleIntervals.forEach(interval => {
+    const pc = (rootPc + interval) % 12;
+    const noteName = (spellingMap && spellingMap[pc]) ? spellingMap[pc] : fallbackNames[pc];
+    notesList.push(noteName);
+  });
+  
+  const notesString = notesList.join(" – ");
+  const translatedRoot = getRootNameTranslated(rootVal, lang);
+  const translatedScaleName = theory[lang].name;
+  const formulaString = theory.formula;
+  const characterString = theory[lang].character;
+  
+  // Related chord name
+  let relatedChord = "";
+  if (theory.chordSuffix) {
+    relatedChord = rootVal + theory.chordSuffix;
+  } else {
+    relatedChord = "N/A";
+  }
+  
+  panel.innerHTML = `
+    <div class="scale-info-header">
+      <h2>${translatedRoot} ${translatedScaleName}</h2>
+    </div>
+    <div class="scale-info-grid">
+      <div class="info-item">
+        <span class="info-label">${TRANSLATIONS[lang]["scale_panel_notes"]}</span>
+        <span class="info-value notes-value">${notesString}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">${TRANSLATIONS[lang]["scale_panel_formula"]}</span>
+        <span class="info-value formula-value">${formulaString}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">${TRANSLATIONS[lang]["scale_panel_character"]}</span>
+        <span class="info-value character-value">${characterString}</span>
+      </div>
+      ${theory.chordSuffix ? `
+      <div class="info-item">
+        <span class="info-label">${TRANSLATIONS[lang]["scale_panel_main_chord"]}</span>
+        <span class="info-value main-chord-value">${relatedChord}</span>
+      </div>
+      ` : ""}
+    </div>
+  `;
+}
+
+function translatePage() {
+  const lang = currentLang;
+  
+  // Update active class on body and toggle buttons
+  document.body.className = `lang-${lang}`;
+  const btnEs = document.getElementById("langBtnEs");
+  const btnEn = document.getElementById("langBtnEn");
+  if (btnEs && btnEn) {
+    if (lang === "es") {
+      btnEs.classList.add("active");
+      btnEn.classList.remove("active");
+    } else {
+      btnEs.classList.remove("active");
+      btnEn.classList.add("active");
+    }
+  }
+  
+  // Find all elements with [data-i18n]
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.getAttribute("data-i18n");
+    if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
+      // Handle special states
+      if (key === "metro_toggle" && metroRunning) {
+        el.textContent = TRANSLATIONS[lang]["metro_toggle_playing"];
+      } else if (key === "practice_btn" && practiceRunning) {
+        el.textContent = TRANSLATIONS[lang]["practice_btn_stop"];
+      } else {
+        el.textContent = TRANSLATIONS[lang][key];
+      }
+    }
+  });
+  
+  // Repopulate options to show translated scale names
+  populateSelectors();
+  
+  // Refresh note labels on the fretboard
+  refreshNoteLabels();
+  
+  // Refresh the chords panel
+  updateChordsPanel();
+  
+  // Refresh scale info panel
+  updateScaleInfoPanel();
+}
+
 function updateUI() {
   updateUIButtons();
   refreshNoteLabels();
   updateAndApply();
+  updateScaleInfoPanel();
 }
 
 function updateUIButtons() {
@@ -697,8 +1148,9 @@ if (chordTypeToggle) {
 }
 
 function updateChordsPanel() {
+  const lang = currentLang;
   if (!selectedScale || !DIATONIC_MODES[selectedScale]) {
-    chordsListEl.innerHTML = '<div class="no-selection" style="font-size:0.7rem; color:var(--muted); text-align:center;">Selecciona escala</div>';
+    chordsListEl.innerHTML = `<div class="no-selection" style="font-size:0.7rem; color:var(--muted); text-align:center;">${TRANSLATIONS[lang]["chords_no_selection"]}</div>`;
     return;
   }
 
@@ -710,6 +1162,14 @@ function updateChordsPanel() {
   const rootPc = NOTE_TO_PC[rootName];
   const scaleIntervals = Array.from(SCALES_CONFIG[selectedScale]).sort((a, b) => a - b);
   const spellingMap = SCALE_SPELLINGS[`${rootName}:${selectedScale}`];
+
+  // Calculate notes of the scale in order to stack thirds
+  const scaleNotesList = [];
+  scaleIntervals.forEach(intVal => {
+    const pc = (rootPc + intVal) % 12;
+    const noteName = (spellingMap && spellingMap[pc]) ? spellingMap[pc] : PC_TO_SHARP[pc];
+    scaleNotesList.push(noteName);
+  });
 
   chordsListEl.innerHTML = "";
 
@@ -727,11 +1187,17 @@ function updateChordsPanel() {
     if (chordTag === "7") chordName += "7";
     if (chordTag === "m7b5") chordName += "m7b5";
 
-    renderChordCard(degreeRootName, chordName, degreeLabel, chordTag, index);
+    // Stack thirds (I, III, V, VII) for chord notes
+    const chordNotesList = isSevenths
+      ? [scaleNotesList[index], scaleNotesList[(index + 2) % 7], scaleNotesList[(index + 4) % 7], scaleNotesList[(index + 6) % 7]]
+      : [scaleNotesList[index], scaleNotesList[(index + 2) % 7], scaleNotesList[(index + 4) % 7]];
+    const chordNotesString = chordNotesList.join(" – ");
+
+    renderChordCard(degreeRootName, chordName, degreeLabel, chordTag, index, chordNotesString);
   });
 }
 
-function renderChordCard(rootName, fullName, degreeLabel, type, index) {
+function renderChordCard(rootName, fullName, degreeLabel, type, index, notesString) {
   const card = document.createElement("div");
   card.className = "chord-card";
 
@@ -749,7 +1215,8 @@ function renderChordCard(rootName, fullName, degreeLabel, type, index) {
       rootName: rootName,
       fullName: fullName,
       degreeLabel: degreeLabel,
-      type: type
+      type: type,
+      notes: notesString
     });
   });
 
@@ -757,7 +1224,6 @@ function renderChordCard(rootName, fullName, degreeLabel, type, index) {
 }
 
 function showChordPopup(anchorEl, data) {
-  // Activar visualmente la tarjeta
   document.querySelectorAll(".chord-card.active").forEach(c => c.classList.remove("active"));
   anchorEl.classList.add("active");
 
@@ -768,40 +1234,64 @@ function showChordPopup(anchorEl, data) {
   const currentVarIdx = chordVariations[degreeIndex] % shapes.length;
   const shape = shapes[currentVarIdx];
 
-  // Actualizar contenido del Popup
   popupName.textContent = data.fullName;
   popupDegree.textContent = data.degreeLabel;
-  popupVarLabel.textContent = `Var. ${currentVarIdx + 1}`;
+
+  // Calculate if the chord shape is open or barre
+  const lang = currentLang;
+  const rootPc = NOTE_TO_PC[data.rootName];
+  const refString = shape.rootString;
+  const openPc = OPEN_STRING_PC[refString];
+  let rootFret = (rootPc - openPc + 12) % 12;
+
+  let isBarre = true;
+  shape.frets.forEach(fRel => {
+    if (fRel !== null) {
+      const absFret = rootFret + fRel;
+      if (absFret === 0) isBarre = false;
+    }
+  });
+
+  const positionText = isBarre 
+    ? TRANSLATIONS[lang]["popup_barre_pos"]
+    : TRANSLATIONS[lang]["popup_open_pos"];
+
+  const posBadge = document.getElementById("popup-detail-position");
+  if (posBadge) {
+    posBadge.textContent = positionText;
+    posBadge.className = `position-badge ${isBarre ? 'barre' : 'open'}`;
+  }
+
+  const notesText = document.getElementById("popup-detail-notes");
+  if (notesText) notesText.textContent = data.notes;
+
+  const typeText = document.getElementById("popup-detail-type");
+  if (typeText) {
+    typeText.textContent = CHORD_TYPE_NAMES[lang][data.type] || data.type;
+  }
+
+  popupVarLabel.textContent = `${TRANSLATIONS[lang]["popup_variation"]} ${currentVarIdx + 1}`;
 
   popupDiagContainer.innerHTML = "";
   renderChordDiagram(popupDiagContainer, shape, data.rootName);
 
-  // Posicionamiento
   chordPopup.style.display = "block";
   const rect = anchorEl.getBoundingClientRect();
   const popupRect = chordPopup.getBoundingClientRect();
 
-  // Calcular posición centrada verticalmente respecto a la tarjeta
-  // (Top de la tarjeta + mitad de su altura) - mitad de la altura del popup
   let topPos = (rect.top + window.scrollY + rect.height / 2) - (popupRect.height / 2);
-
-  // Evitar que el popup se salga por arriba de la pantalla
   if (topPos < window.scrollY + 10) topPos = window.scrollY + 10;
 
   chordPopup.style.top = `${topPos}px`;
   chordPopup.style.left = `${rect.left - popupRect.width - 20}px`;
 
-  // Ajustar la flecha para que siempre apunte al centro de la tarjeta clickeada
   const arrow = chordPopup.querySelector(".popup-arrow");
   if (arrow) {
     const arrowTop = (rect.top + window.scrollY + rect.height / 2) - topPos - 7;
     arrow.style.top = `${arrowTop}px`;
   }
 
-  // Guardar estado actual para controles
   currentPopupChord = { ...data, shapeIndex: currentVarIdx };
-
-  // Resaltar en el mástil
   highlightChordOnBoard(shape, data.rootName);
 }
 
@@ -812,7 +1302,32 @@ function updatePopupContent() {
   const currentVarIdx = chordVariations[data.degreeIndex] % shapes.length;
   const shape = shapes[currentVarIdx];
 
-  popupVarLabel.textContent = `Var. ${currentVarIdx + 1}`;
+  const lang = currentLang;
+  popupVarLabel.textContent = `${TRANSLATIONS[lang]["popup_variation"]} ${currentVarIdx + 1}`;
+  
+  const rootPc = NOTE_TO_PC[data.rootName];
+  const refString = shape.rootString;
+  const openPc = OPEN_STRING_PC[refString];
+  let rootFret = (rootPc - openPc + 12) % 12;
+
+  let isBarre = true;
+  shape.frets.forEach(fRel => {
+    if (fRel !== null) {
+      const absFret = rootFret + fRel;
+      if (absFret === 0) isBarre = false;
+    }
+  });
+
+  const positionText = isBarre 
+    ? TRANSLATIONS[lang]["popup_barre_pos"]
+    : TRANSLATIONS[lang]["popup_open_pos"];
+
+  const posBadge = document.getElementById("popup-detail-position");
+  if (posBadge) {
+    posBadge.textContent = positionText;
+    posBadge.className = `position-badge ${isBarre ? 'barre' : 'open'}`;
+  }
+
   popupDiagContainer.innerHTML = "";
   renderChordDiagram(popupDiagContainer, shape, data.rootName);
 
@@ -885,9 +1400,6 @@ function highlightChordOnBoard(shape, rootName) {
   const openPc = OPEN_STRING_PC[refString];
   let rootFret = (rootPc - openPc + 12) % 12;
 
-  // Si la tónica está muy baja (ej: traste 1), intentar moverla al traste 13 si es necesario?
-  // Por ahora, usamos el traste más bajo posible.
-
   const notesToHighlight = [];
   shape.frets.forEach((fRel, sIdx) => {
     if (fRel !== null) {
@@ -898,7 +1410,6 @@ function highlightChordOnBoard(shape, rootName) {
     }
   });
 
-  // Limpiar marcas manuales ('on')
   document.querySelectorAll(".cell.on").forEach(el => el.classList.remove("on"));
   notesToHighlight.forEach(n => {
     const cell = document.querySelector(`.cell[data-string-index="${n.string}"][data-fret="${n.fret}"]`);
@@ -907,7 +1418,6 @@ function highlightChordOnBoard(shape, rootName) {
     }
   });
 
-  // Tocar el acorde (arpegio rápido)
   notesToHighlight.forEach((n, i) => {
     setTimeout(() => playNote(n.string, n.fret), i * 50);
   });
@@ -920,11 +1430,27 @@ updateUI = function () {
   updateChordsPanel();
 };
 
+// --- Language Button Click Event Listeners ---
+const btnEs = document.getElementById("langBtnEs");
+const btnEn = document.getElementById("langBtnEn");
+if (btnEs && btnEn) {
+  btnEs.addEventListener("click", () => {
+    currentLang = "es";
+    localStorage.setItem("scale_explorer_lang", "es");
+    translatePage();
+  });
+
+  btnEn.addEventListener("click", () => {
+    currentLang = "en";
+    localStorage.setItem("scale_explorer_lang", "en");
+    translatePage();
+  });
+}
+
 // --- Inicialización ---
 renderBoard();
 renderMarkers();
-refreshNoteLabels();
-updateChordsPanel();
+translatePage();
 
 // 8) Modal Cafecito
 const cafecitoBtn = document.getElementById("cafecitoBtn");
