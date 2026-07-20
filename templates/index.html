@@ -11,14 +11,25 @@
   <meta property="og:description" content="Explorador de escalas de guitarra interactivo">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://scale-explorer.netlify.app/">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}?v=18">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}?v=19">
 </head>
 
-<body>
+<body class="lang-es">
   <div class="wrap">
-    <!-- Título y descripción principal -->
-    <h1>Escalas Musicales - Guitarra</h1>
-    <p>Click para marcar/desmarcar manual. Selecciona una escala para resaltar automáticamente.</p>
+    <!-- Encabezado con título principal y selector de idioma -->
+    <header class="app-header">
+      <div class="header-main">
+        <h1 data-i18n="app_title">Scale Explorer</h1>
+        <p class="subtitle" data-i18n="app_subtitle">Explorá escalas, modos y acordes en todo el diapasón.</p>
+        <span class="secondary-brand" data-i18n="app_secondary_brand">Escalas musicales para guitarra</span>
+      </div>
+      <div class="lang-selector" role="group" aria-label="Selector de idioma / Language selector">
+        <button id="langBtnEs" class="lang-btn active" aria-label="Cambiar idioma a Español">ES</button>
+        <span class="lang-separator">|</span>
+        <button id="langBtnEn" class="lang-btn" aria-label="Change language to English">EN</button>
+      </div>
+    </header>
+    <p class="instructions" data-i18n="app_instructions">Click para marcar/desmarcar manual. Selecciona una escala para resaltar automáticamente.</p>
 
     <div class="main-layout">
       <div class="content">
@@ -36,116 +47,148 @@
         <!-- Barra de herramientas con selectores y controles -->
         <div class="toolbar">
           <!-- selector de tónica -->
-          <label class="hint" for="rootSelect">Tónica:</label>
+          <label class="hint" for="rootSelect" data-i18n="tonic_label">Tónica:</label>
           <select id="rootSelect" aria-label="Seleccionar tónica"></select>
-          <label class="hint" for="shapeSelect">Dibujo:</label>
-          <select id="shapeSelect"></select>
+          <label class="hint" for="shapeSelect" data-i18n="shape_label">Dibujo:</label>
+          <select id="shapeSelect" aria-label="Seleccionar dibujo"></select>
           <!-- selector modo -->
-          <label class="hint" for="scaleSelect">Modo:</label>
+          <label class="hint" for="scaleSelect" data-i18n="mode_label">Modo:</label>
           <select id="scaleSelect" aria-label="Seleccionar modo">
-            <option value="">-- Ninguno --</option>
-            <option value="major">Mayor (Jónico)</option>
-            <option value="dorian">Dórico</option>
-            <option value="phrygian">Frigio</option>
-            <option value="lydian">Lidio</option>
-            <option value="mixolydian">Mixolidio</option>
-            <option value="minor">Menor (Eólico)</option>
-            <option value="locrian">Locrio</option>
-            <option value="chromatic">Cromática</option>
+            <!-- Las opciones se generan dinámicamente por JS -->
           </select>
           <span class="spacer"></span>
           <!-- METRÓNOMO -->
           <div id="metroVisual" class="metro-led" title="Indicador visual de pulso"></div>
-          <button id="metroToggle">▶️ Metrónomo</button>
-          <label class="hint">BPM</label>
+          <button id="metroToggle" data-i18n="metro_toggle">▶️ Metrónomo</button>
+          <label class="hint" for="bpmInput">BPM</label>
           <input id="bpmInput" type="number" min="40" max="240" value="80" style="width:70px">
           <label class="hint">
             <input type="checkbox" id="metroSound" checked>
-            Sonido
+            <span data-i18n="metro_sound">Sonido</span>
           </label>
           <div class="practice-mode-control">
-            <span class="mode-label">Escala</span>
+            <span class="mode-label" data-i18n="practice_label_scale">Escala</span>
             <label class="switch">
-              <input type="checkbox" id="practiceModeSwitch">
+              <input type="checkbox" id="practiceModeSwitch" aria-label="Modo de práctica: manual o escala">
               <span class="slider round"></span>
             </label>
-            <span class="mode-label">Manual</span>
+            <span class="mode-label" data-i18n="practice_label_manual">Manual</span>
           </div>
-          <button id="practiceBtn" type="button" style="border-color: var(--muted)">🎓 Practicar</button>
-          <button id="clearBtn" type="button">Limpiar</button>
+          <button id="practiceBtn" type="button" style="border-color: var(--muted)" data-i18n="practice_btn">🎓 Practicar</button>
+          <button id="clearBtn" type="button" data-i18n="clear_btn">Limpiar</button>
         </div>
-        <div style="margin-top: 10px; opacity: 0.6; font-size: 0.8rem; text-align: center;">
+        <div class="app-tip" data-i18n="app_tip">
           Tip: elegí escala + tónica (ej: Mayor + C) y se marcan todas las notas.
+        </div>
+
+        <!-- Panel de información de la escala -->
+        <div id="scale-info-panel" class="scale-info-panel">
+          <!-- Renderizado dinámicamente desde JS -->
         </div>
       </div>
 
       <!-- Panel de Acordes Diatónicos -->
-      <aside id="chords-sidebar">
+      <aside id="chords-sidebar" aria-labelledby="chords-title">
         <div class="sidebar-header">
-          <h2>Acordes</h2>
+          <h2 id="chords-title" data-i18n="chords_title">Acordes</h2>
           <div class="toggle-container">
             <label>
-              <input type="checkbox" id="chordTypeToggle"> 7th
+              <input type="checkbox" id="chordTypeToggle"> <span data-i18n="chord_type_toggle">7th</span>
             </label>
           </div>
         </div>
         <div id="chords-list" class="chords-list">
           <!-- Los acordes se renderizarán aquí -->
-          <div class="no-selection">...</div>
+          <div class="no-selection" data-i18n="chords_no_selection">...</div>
         </div>
       </aside>
 
       <!-- Pop-up Flotante de Acordes -->
-      <div id="chord-popup" class="chord-popup">
+      <div id="chord-popup" class="chord-popup" role="dialog" aria-label="Información del acorde">
         <div class="popup-content">
           <div class="popup-header">
             <span id="popup-chord-name" class="chord-name"></span>
             <span id="popup-chord-degree" class="chord-degree"></span>
           </div>
+          <div id="popup-chord-details" class="popup-details">
+            <div class="detail-row"><strong data-i18n="popup_notes">Notas</strong>: <span id="popup-detail-notes"></span></div>
+            <div class="detail-row"><strong data-i18n="popup_type">Tipo</strong>: <span id="popup-detail-type"></span></div>
+            <div class="detail-row"><span id="popup-detail-position" class="position-badge"></span></div>
+          </div>
           <div id="popup-diagram-container"></div>
           <div class="card-controls">
-            <button id="popup-prev" class="card-btn">←</button>
+            <button id="popup-prev" class="card-btn" aria-label="Anterior variación">←</button>
             <span id="popup-var-label" style="font-size: 0.7rem; color: var(--muted)">Var. 1</span>
-            <button id="popup-next" class="card-btn">→</button>
+            <button id="popup-next" class="card-btn" aria-label="Siguiente variación">→</button>
           </div>
         </div>
         <div class="popup-arrow"></div>
       </div>
     </div>
 
+    <!-- Sección de Funcionalidades / SEO -->
     <section class="seo-section">
-      <h2>Practicar escalas de guitarra online</h2>
-      <p>
-        Con esta herramienta podés practicar escalas de guitarra directamente en el diapasón.
-        Visualizá escalas como la pentatónica, mayor y menor de forma interactiva.
-        Ideal para guitarristas que quieren aprender y mejorar su técnica.
-        Explorá el <strong>mástil de la guitarra</strong> y encontrá todas las posiciones para tus solos.
-      </p>
+      <h2 class="seo-main-title" data-i18n="seo_title">¿Qué podés hacer con Scale Explorer?</h2>
+      
+      <div class="seo-cards-grid">
+        <div class="seo-card">
+          <div class="card-icon" aria-hidden="true">🎸</div>
+          <h3 data-i18n="seo_card1_title">Aprender el diapasón</h3>
+          <p data-i18n="seo_card1_desc">Visualizá las notas de una escala o modo a lo largo de toda la guitarra.</p>
+        </div>
+        <div class="seo-card">
+          <div class="card-icon" aria-hidden="true">⏱️</div>
+          <h3 data-i18n="seo_card2_title">Practicar posiciones</h3>
+          <p data-i18n="seo_card2_desc">Estudiá figuras, patrones y posiciones acompañándote con el metrónomo.</p>
+        </div>
+        <div class="seo-card">
+          <div class="card-icon" aria-hidden="true">🎼</div>
+          <h3 data-i18n="seo_card3_title">Comprender la armonía</h3>
+          <p data-i18n="seo_card3_desc">Descubrí las notas, intervalos y acordes relacionados con cada escala.</p>
+        </div>
+        <div class="seo-card">
+          <div class="card-icon" aria-hidden="true">🌀</div>
+          <h3 data-i18n="seo_card4_title">Explorar modos</h3>
+          <p data-i18n="seo_card4_desc">Compará el carácter y la estructura de los diferentes modos musicales.</p>
+        </div>
+      </div>
 
-      <h2>Guitar scales visualizer</h2>
-      <p>
-        This interactive guitar scale tool helps you understand scales across the fretboard.
-        Explore major, minor and pentatonic scales visually and improve your improvisation skills.
-        Perfect for mastering the <strong>fretboard</strong> and music theory.
-      </p>
-
-      <h2>Escalas y Acordes Interactivos</h2>
-      <p>
-        Además de las escalas, podés visualizar los <strong>acordes diatónicos</strong> de cada tonalidad.
-        Nuestra app es un <strong>simulador de guitarra online</strong> completo para estudiar armonía y técnica al mismo tiempo.
-        ¡Usá nuestro metrónomo integrado para practicar a tiempo!
-      </p>
-
-      <h2>Greek Modes and Theory</h2>
-      <p>
-        Master all 7 modes: Ionian, Dorian, Phrygian, Lydian, Mixolydian, Aeolian, and Locrian.
-        This <strong>online guitar fretboard</strong> displays every note clearly, helping you memorize shapes faster.
-      </p>
+      <!-- Textos detallados para SEO (Visibles de forma elegante según idioma) -->
+      <div class="seo-detailed-text">
+        <div class="seo-text-block lang-es-only">
+          <h2>Practicar escalas de guitarra online</h2>
+          <p>
+            Con esta herramienta podés practicar escalas de guitarra directamente en el diapasón.
+            Visualizá escalas como la pentatónica, mayor y menor de forma interactiva.
+            Ideal para guitarristas que quieren aprender y mejorar su técnica.
+            Explorá el <strong>mástil de la guitarra</strong> y encontrá todas las posiciones para tus solos.
+          </p>
+          <h2>Escalas y Acordes Interactivos</h2>
+          <p>
+            Además de las escalas, podés visualizar los <strong>acordes diatónicos</strong> de cada tonalidad. 
+            Nuestra app es un <strong>simulador de guitarra online</strong> completo para estudiar armonía y técnica al mismo tiempo.
+            ¡Usá nuestro metrónomo integrado para practicar a tiempo!
+          </p>
+        </div>
+        <div class="seo-text-block lang-en-only">
+          <h2>Guitar scales visualizer</h2>
+          <p>
+            This interactive guitar scale tool helps you understand scales across the fretboard.
+            Explore major, minor and pentatonic scales visually and improve your improvisation skills.
+            Perfect for mastering the <strong>fretboard</strong> and music theory.
+          </p>
+          <h2>Greek Modes and Theory</h2>
+          <p>
+            Master all 7 modes: Ionian, Dorian, Phrygian, Lydian, Mixolydian, Aeolian, and Locrian.
+            This <strong>online guitar fretboard</strong> displays every note clearly, helping you memorize shapes faster.
+          </p>
+        </div>
+      </div>
     </section>
   </div>
-  </div>
+
   <!-- Botón Cafecito Circular con Icono SVG -->
-  <button id="cafecitoBtn" class="cafecito-btn" title="Donar en Cafecito">
+  <button id="cafecitoBtn" class="cafecito-btn" title="Donar en Cafecito" aria-label="Apoya el proyecto en Cafecito">
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"
       stroke-linejoin="round">
       <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
@@ -157,16 +200,17 @@
   </button>
 
   <!-- Modal Cafecito -->
-  <div id="cafecitoModal" class="modal">
+  <div id="cafecitoModal" class="modal" aria-labelledby="modal-title" aria-modal="true" role="dialog">
     <div class="modal-content">
-      <span class="close-btn">&times;</span>
+      <span class="close-btn" aria-label="Cerrar modal">&times;</span>
       <img src="{{ url_for('static', filename='img/cafecito_ant.png') }}" alt="Hormiguita" class="cafecito-img" />
-      <p class="cafecito-phrase">Ayuda a este humilde servidor por amor a la música</p>
-      <a href="https://cafecito.app/nachogiam" target="_blank" class="cafecito-link">Ir a Cafecito</a>
+      <h3 id="modal-title" data-i18n="support_title">Apoya a Scale Explorer</h3>
+      <p class="cafecito-phrase" data-i18n="support_desc">Scale Explorer es una herramienta gratuita. Tu cafecito ayuda a mantenerla online y sumar nuevas funciones.</p>
+      <a href="https://cafecito.app/nachogiam" target="_blank" rel="noopener noreferrer" class="cafecito-link" data-i18n="support_button">Ir a Cafecito</a>
     </div>
   </div>
 
-  <script src="{{ url_for('static', filename='js/script.js') }}?v=18"></script>
+  <script src="{{ url_for('static', filename='js/script.js') }}?v=19"></script>
 </body>
 
 </html>
