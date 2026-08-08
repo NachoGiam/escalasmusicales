@@ -1197,4 +1197,236 @@ body.lang-en .lang-es-only {
     display: none;
   }
 }
+
+/* Tabs System */
+.tabs-container {
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tabs-nav {
+  display: flex;
+  gap: 10px;
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+  color: #fff;
+}
+
+.tab-btn.active {
+  color: var(--scale-color);
+  border-bottom-color: var(--scale-color);
+}
+
+.tab-content {
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Tuner Styles */
+.tuner-layout {
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.tuner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+}
+
+.tuner-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.tuner-btn {
+  background: #333;
+  color: #fff;
+  border: 1px solid #555;
+  padding: 12px 24px;
+  font-size: 1.1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tuner-btn:hover {
+  background: #444;
+  border-color: var(--scale-color);
+}
+
+.tuner-btn.active {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  color: #ff8888;
+}
+
+.tuner-status {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.tuner-status.active {
+  color: #22c55e;
+}
+
+.tuner-meter-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.tuner-note-display {
+  font-size: 5rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+  text-shadow: 0 0 20px rgba(255,255,255,0.1);
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  min-height: 80px;
+}
+
+#tunerOctave {
+  font-size: 2rem;
+  color: var(--muted);
+  margin-left: 5px;
+}
+
+.tuner-cents-display {
+  font-size: 1.2rem;
+  color: var(--muted);
+  font-family: monospace;
+}
+
+.tuner-dial {
+  position: relative;
+  width: 300px;
+  height: 150px;
+  background: radial-gradient(circle at 50% 100%, #222 0%, #111 100%);
+  border-top-left-radius: 150px;
+  border-top-right-radius: 150px;
+  border: 2px solid rgba(255,255,255,0.1);
+  border-bottom: none;
+  overflow: hidden;
+  margin-top: 10px;
+  box-shadow: inset 0 10px 20px rgba(0,0,0,0.5);
+}
+
+.dial-marks {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+}
+
+.mark {
+  position: absolute;
+  bottom: 10px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  transform-origin: 50% 140px;
+}
+
+.mark-low { left: 20px; bottom: 20px; }
+.mark-center { left: 50%; transform: translateX(-50%); top: 10px; color: #fff; font-weight: bold; }
+.mark-high { right: 20px; bottom: 20px; }
+
+.tuner-needle {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 4px;
+  height: 130px;
+  background: #ef4444;
+  transform-origin: bottom center;
+  transform: translateX(-50%) rotate(0deg);
+  border-radius: 2px 2px 0 0;
+  transition: transform 0.1s linear, background-color 0.2s;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+
+.tuner-needle.in-tune {
+  background: #22c55e;
+  box-shadow: 0 0 15px rgba(34, 197, 94, 0.8);
+}
+
+.tuner-standard-guide {
+  width: 100%;
+  text-align: center;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.tuning-pegs {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.tuning-peg {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #2a2a2a;
+  border: 2px solid #444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: var(--muted);
+  transition: all 0.2s;
+}
+
+.peg-octave {
+  font-size: 0.65rem;
+  vertical-align: sub;
+}
+
+.tuning-peg.active-peg {
+  background: rgba(74, 158, 255, 0.2);
+  border-color: var(--scale-color);
+  color: #fff;
+  box-shadow: 0 0 10px rgba(74, 158, 255, 0.4);
+}
+
+.tuning-peg.in-tune-peg {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: #22c55e;
+  color: #fff;
+  box-shadow: 0 0 15px rgba(34, 197, 94, 0.5);
+}
 

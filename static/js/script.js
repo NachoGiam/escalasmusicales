@@ -1471,3 +1471,40 @@ if (cafecitoBtn && cafecitoModal) {
     }
   });
 }
+
+// 9) Lógica de Pestañas (Tabs)
+document.addEventListener("DOMContentLoaded", () => {
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const tabContents = document.querySelectorAll('.tab-content');
+
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      // Remover clase active de todos los botones y contenidos
+      tabBtns.forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+      });
+      tabContents.forEach(c => c.classList.remove('active'));
+
+      // Agregar active al botón clickeado
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected', 'true');
+      
+      // Mostrar el contenido correspondiente
+      const targetId = btn.getAttribute('data-tab');
+      const targetContent = document.getElementById(targetId);
+      if (targetContent) {
+        targetContent.classList.add('active');
+        // Usar requestAnimationFrame para dar tiempo a que el navegador procese el cambio de 'display'
+        // antes de aplicar cualquier efecto si fuera necesario.
+        if(targetId === 'tab-tuner'){
+            targetContent.style.display = "block";
+            document.getElementById('tab-scales').style.display = "none";
+        } else {
+            targetContent.style.display = "block";
+            document.getElementById('tab-tuner').style.display = "none";
+        }
+      }
+    });
+  });
+});
