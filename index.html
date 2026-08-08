@@ -4,14 +4,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Scale Explorer | Escalas de guitarra online</title>
-  <meta name="description" content="Explorador de escalas de guitarra interactivo. Practicá escalas fácilmente en el diapasón.">
+  <title>Scale Explorer | Afinador y Escalas de guitarra online</title>
+  <meta name="description" content="Explorador de escalas de guitarra interactivo y afinador online. Practicá escalas y afiná tu guitarra fácilmente.">
   <meta name="robots" content="index, follow">
-  <meta property="og:title" content="Scale Explorer">
-  <meta property="og:description" content="Explorador de escalas de guitarra interactivo">
+  <meta property="og:title" content="Scale Explorer | Afinador y Escalas">
+  <meta property="og:description" content="Explorador de escalas de guitarra interactivo y afinador online">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://scale-explorer.netlify.app/">
-  <link rel="stylesheet" href="static/css/estilos.css?v=19">
+  <link rel="stylesheet" href="static/css/estilos.css?v=20">
 </head>
 
 <body class="lang-es">
@@ -31,7 +31,15 @@
     </header>
     <p class="instructions" data-i18n="app_instructions">Click para marcar/desmarcar manual. Selecciona una escala para resaltar automáticamente.</p>
 
-    <div class="main-layout">
+    <div class="tabs-container">
+      <div class="tabs-nav" role="tablist">
+        <button class="tab-btn active" data-tab="tab-scales" role="tab" aria-selected="true" data-i18n="tab_scales">Escalas</button>
+        <button class="tab-btn" data-tab="tab-tuner" role="tab" aria-selected="false" data-i18n="tab_tuner">Afinador</button>
+      </div>
+    </div>
+
+    <div id="tab-scales" class="tab-content active" role="tabpanel">
+      <div class="main-layout">
       <div class="content">
         <!-- Área del Diapasón -->
         <div class="board">
@@ -126,6 +134,55 @@
       </div>
     </div>
 
+      </div>
+    </div>
+
+    <!-- Pestaña Afinador -->
+    <div id="tab-tuner" class="tab-content" role="tabpanel" style="display: none;">
+      <div class="tuner-layout">
+        <h2 data-i18n="tuner_title" style="text-align: center; margin-bottom: 20px;">Afinador</h2>
+        
+        <div class="tuner-container">
+          <div class="tuner-controls">
+            <button id="tunerStartBtn" class="tuner-btn" data-i18n="tuner_start">🎙️ Activar Micrófono</button>
+            <span id="tunerStatus" class="tuner-status" data-i18n="tuner_status_off">Apagado</span>
+          </div>
+
+          <div class="tuner-meter-container">
+            <div class="tuner-note-display">
+              <span id="tunerNoteName">-</span>
+              <span id="tunerOctave"></span>
+            </div>
+            
+            <div class="tuner-cents-display">
+              <span id="tunerCentsValue">0</span> <span style="font-size: 0.8rem">cents</span>
+            </div>
+
+            <div class="tuner-dial">
+              <div class="dial-marks">
+                <span class="mark mark-low">-50</span>
+                <span class="mark mark-center">0</span>
+                <span class="mark mark-high">+50</span>
+              </div>
+              <div id="tunerNeedle" class="tuner-needle"></div>
+            </div>
+          </div>
+
+          <div class="tuner-standard-guide">
+            <h4 data-i18n="tuner_guide_title" style="margin-bottom: 10px; color: var(--text-color);">Cuerdas</h4>
+            <div class="tuning-pegs">
+              <div class="tuning-peg" id="peg-E2">E<span class="peg-octave">2</span></div>
+              <div class="tuning-peg" id="peg-A2">A<span class="peg-octave">2</span></div>
+              <div class="tuning-peg" id="peg-D3">D<span class="peg-octave">3</span></div>
+              <div class="tuning-peg" id="peg-G3">G<span class="peg-octave">3</span></div>
+              <div class="tuning-peg" id="peg-B3">B<span class="peg-octave">3</span></div>
+              <div class="tuning-peg" id="peg-E4">e<span class="peg-octave">4</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Sección de Funcionalidades / SEO -->
     <section class="seo-section">
       <h2 class="seo-main-title" data-i18n="seo_title">¿Qué podés hacer con Scale Explorer?</h2>
@@ -151,6 +208,11 @@
           <h3 data-i18n="seo_card4_title">Explorar modos</h3>
           <p data-i18n="seo_card4_desc">Compará el carácter y la estructura de los diferentes modos musicales.</p>
         </div>
+        <div class="seo-card">
+          <div class="card-icon" aria-hidden="true">🎙️</div>
+          <h3 data-i18n="seo_card5_title">Afinador de Guitarra</h3>
+          <p data-i18n="seo_card5_desc">Afiná tu guitarra de forma rápida y precisa con nuestro afinador online integrado.</p>
+        </div>
       </div>
 
       <!-- Textos detallados para SEO (Visibles de forma elegante según idioma) -->
@@ -169,6 +231,10 @@
             Nuestra app es un <strong>simulador de guitarra online</strong> completo para estudiar armonía y técnica al mismo tiempo.
             ¡Usá nuestro metrónomo integrado para practicar a tiempo!
           </p>
+          <h2>Afinador de Guitarra Online</h2>
+          <p>
+            Ahora también incluimos un <strong>afinador de guitarra online</strong>. Simplemente activa el micrófono y asegúrate de que tu instrumento esté perfectamente afinado antes de empezar a practicar. Es rápido, preciso y completamente gratuito, ideal como <strong>afinador cromático</strong> o para afinación estándar.
+          </p>
         </div>
         <div class="seo-text-block lang-en-only">
           <h2>Guitar scales visualizer</h2>
@@ -181,6 +247,10 @@
           <p>
             Master all 7 modes: Ionian, Dorian, Phrygian, Lydian, Mixolydian, Aeolian, and Locrian.
             This <strong>online guitar fretboard</strong> displays every note clearly, helping you memorize shapes faster.
+          </p>
+          <h2>Online Guitar Tuner</h2>
+          <p>
+            Tune your instrument easily with our built-in <strong>online guitar tuner</strong>. Use your microphone to get a precise reading and ensure you are perfectly in tune before practicing your scales and chords.
           </p>
         </div>
       </div>
@@ -209,7 +279,9 @@
       <a href="https://cafecito.app/nachogiam" target="_blank" rel="noopener noreferrer" class="cafecito-link" data-i18n="support_button">Ir a Cafecito</a>
     </div>
   </div>
-  <script src="static/js/script.js?v=19"></script>
+
+  <script src="static/js/script.js?v=20"></script>
+  <script src="static/js/tuner.js?v=20"></script>
 </body>
 
 </html>
